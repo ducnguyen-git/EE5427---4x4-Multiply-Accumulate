@@ -140,10 +140,10 @@ flowchart TD
 
 | Member | Primary Role | Assigned Tasks / GitHub Issues | Key Deliverables |
 | :--- | :--- | :--- | :--- |
-| **Member 1** | **RTL Architecture Lead** | • Issue #1: Microarchitecture & Interface Spec<br>• Issue #2: SystemVerilog RTL Design (`mac_top`) | Synthesizable RTL, clean linting, datapath pipelining. |
-| **Member 2** | **Design Verification Lead** | • Issue #3: Self-Checking Testbench Environment<br>• Issue #4: Corner-Case Regression & Coverage Sign-off | Randomized TB, waveform dumps, 100% functional coverage. |
-| **Member 3** | **FPGA Implementation Lead** | • Issue #5: Synthesis, Constraints & Static Timing (STA)<br>• Issue #6: Board Bring-Up & Hardware Demo Wrapper | Bitstream, resource utilization report, physical FPGA demo. |
-| **Member 4** | **Documentation & Presentation Lead** | • Issue #7: Comprehensive Project Technical Report<br>• Issue #8: Presentation Slides & Demo Walkthrough | Formal project report (PDF), slide deck, demo recording. |
+| **Member 1** | **RTL Architecture Lead** | • [Issue #3](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/3): Microarchitecture Spec & Interface Contract<br>• [Issue #2](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/2): SystemVerilog RTL Design (`mac_top`) | Synthesizable RTL, clean linting, datapath pipelining. |
+| **Member 2** | **Design Verification Lead** | • [Issue #4](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/4): Python Golden Model & Stimulus Suite<br>• [Issue #1](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/1): Self-Checking Testbench & Coverage Sign-off | Randomized TB, waveform dumps, 100% functional coverage. |
+| **Member 3** | **FPGA Implementation Lead** | • [Issue #5](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/5): Vivado Synthesis, Constraints (.xdc) & STA<br>• [Issue #6](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/6): Board Bring-Up & Hardware Demo Wrapper | Bitstream, resource utilization report, physical FPGA demo. |
+| **Member 4** | **Documentation & Presentation Lead** | • [Issue #7](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/7): Comprehensive Project Technical Report<br>• [Issue #8](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/8): Presentation Slides & Demo Walkthrough | Formal project report (PDF), slide deck, demo recording. |
 
 ---
 
