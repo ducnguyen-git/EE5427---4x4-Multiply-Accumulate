@@ -1,0 +1,32 @@
+# EDA Tool and Hardware Synthesis Artifacts
+*.jou
+*.log
+*.str
+*.pb
+*.wdb
+*.vcd
+*.fsdb
+
+# Vivado
+.Xil/
+*.runs/
+*.sim/
+*.ip_user_files/
+*.hw/
+*.cache/
+xsim.dir/
+
+# ModelSim / QuestaSim
+work/
+transcript
+*.wlf
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
