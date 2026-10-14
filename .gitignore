@@ -1,31 +1,38 @@
-# EDA Tool and Hardware Synthesis Artifacts
-*.jou
-*.log
-*.str
-*.pb
-*.wdb
-*.vcd
-*.fsdb
+# Intel Quartus Prime EDA Artifacts
+db/
+incremental_db/
+output_files/
+simulation/
+greybox_tmp/
+hc_output/
+.qsys_edit/
+*.rpt
+*.sof
+*.pof
+*.qws
+*.summary
+*.smsg
+*.pin
+*.done
+*.jdi
+*.sld
+*.qxp
+*.qar
+*.sopcinfo
+c5_pin_model_dump.txt
 
-# Vivado
-.Xil/
-*.runs/
-*.sim/
-*.ip_user_files/
-*.hw/
-*.cache/
-xsim.dir/
-
-# ModelSim / QuestaSim
+# ModelSim / QuestaSim (Intel FPGA Edition)
 work/
 transcript
 *.wlf
+*.vstf
+modelsim.ini
 
-# Python
+# Python Artifacts
 __pycache__/
 *.pyc
 
-# OS
+# OS Artifacts
 .DS_Store
 Thumbs.db
 *.swp

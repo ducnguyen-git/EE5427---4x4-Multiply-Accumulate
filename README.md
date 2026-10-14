@@ -1,8 +1,9 @@
 # EE5427: 4-element 4-bit Pipelined Multiply-Accumulate (MAC) Unit
 
 [![Language](https://img.shields.io/badge/Language-SystemVerilog-blue.svg)](https://en.wikipedia.org/wiki/SystemVerilog)
-[![FPGA](https://img.shields.io/badge/Target-Xilinx%20Artix--7-orange.svg)](https://www.xilinx.com)
-[![EDA](https://img.shields.io/badge/EDA-Vivado%20%7C%20ModelSim-green.svg)](https://www.amd.com/en/products/software/adaptive-socs-and-fpgas/vivado.html)
+[![EDA](https://img.shields.io/badge/EDA-Intel%20Quartus%20Prime-0071C5.svg)](https://www.intel.com/content/www/us/en/software/programmable/quartus-prime/overview.html)
+[![Simulator](https://img.shields.io/badge/Simulator-Questa%20Intel%20FPGA-green.svg)](https://www.intel.com)
+[![Target](https://img.shields.io/badge/Target%20FPGA-Intel%20MAX%2010%20%7C%20Cyclone%20IV-orange.svg)](https://www.intel.com/content/www/us/en/products/details/fpga/max-10.html)
 [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
 ---
@@ -11,7 +12,7 @@
 
 In high-performance digital computing—specifically across **Digital Signal Processing (DSP)**, **Deep Learning inference engines (Systolic Arrays, TPU cores)**, and **Matrix-Vector Multiplications (MVM)**—the **Multiply-Accumulate (MAC)** unit is the core arithmetic workhorse.
 
-This repository hosts the full RTL design, verification, and FPGA implementation for a **4-element 4-bit pipelined Multiply-Accumulate unit** developed for **EE5427**. Given two 16-bit input vectors $A$ and $B$, each packed with four unsigned 4-bit elements:
+This repository hosts the full RTL design, verification, and Intel FPGA implementation for a **4-element 4-bit pipelined Multiply-Accumulate unit** developed for **EE5427**. Given two 16-bit input vectors $A$ and $B$, each packed with four unsigned 4-bit elements:
 
 $$\mathbf{A} = \{A_3, A_2, A_1, A_0\}, \quad \mathbf{B} = \{B_3, B_2, B_1, B_0\}$$
 
@@ -68,7 +69,7 @@ With a **10-bit output bus** $C[9:0]$, the representable range is $[0, 1023]$, g
 
 | Signal Name | Direction | Bitwidth | Active Level | Description |
 | :--- | :---: | :---: | :---: | :--- |
-| `clk` | Input | 1 bit | Rising Edge | System operating clock. |
+| `clk` | Input | 1 bit | Rising Edge | System operating clock (50 MHz / 100 MHz). |
 | `rst_n` | Input | 1 bit | Low (`0`) | Asynchronous active-low global reset. Returns registers and FSM to initial state. |
 | `START` | Input | 1 bit | High (`1`) | 1-clock-cycle pulse requesting the MAC unit to latch $A$ and $B$ and trigger a new computation. |
 | `A` | Input | 16 bit | - | Packed input vector $A = \{A_3, A_2, A_1, A_0\}$. Each chunk is unsigned 4-bit. |
@@ -90,7 +91,7 @@ With a **10-bit output bus** $C[9:0]$, the representable range is $[0, 1023]$, g
 | **5** | `FINISH (count=5)`| - | - | - | - | - | **$\sum_{i=0}^3 P_i$** | **`1`** |
 
 - **Latency:** 5 clock cycles from the assertion of `START` to the assertion of `DONE`.
-- **Throughput:** A new operation can be accepted every 6 clock cycles (or continuously pipelined with overlapping shift operations).
+- **Throughput:** A new operation can be accepted every 6 clock cycles.
 
 ---
 
@@ -99,7 +100,7 @@ With a **10-bit output bus** $C[9:0]$, the representable range is $[0, 1023]$, g
 ```text
 EE5427---4x4-Multiply-Accumulate/
 ├── README.md                      # Project documentation and specifications
-├── .gitignore                     # Git ignore rules for EDA synthesis & sim junk
+├── .gitignore                     # Git ignore rules for Intel Quartus Prime & EDA junk
 ├── docs/                          # Design documents and schematics
 │   ├── mac_block_diagram.jpg      # Microarchitecture block diagram
 │   └── mac_block_specification.pdf# Course specification document
@@ -111,39 +112,40 @@ EE5427---4x4-Multiply-Accumulate/
 ├── tb/                            # Verification environment
 │   ├── mac_top_tb.sv              # Self-checking SystemVerilog testbench
 │   └── mac_ref_model.py           # Python golden model & vector generator
-└── fpga/                          # FPGA implementation files
+└── fpga/                          # Intel Quartus Prime implementation files
     ├── constraints/
-    │   └── mac_basys3.xdc         # Xilinx Artix-7 pin & timing constraints
-    └── top_fpga_wrapper.sv        # Board evaluation wrapper (Switches, LEDs, Buttons)
+    │   ├── mac_de10_lite.sdc      # Synopsys Design Constraints (TimeQuest STA)
+    │   └── mac_de10_lite.qsf      # Intel Quartus Settings File (Pin assignments)
+    └── top_fpga_wrapper.sv        # Intel FPGA evaluation wrapper (Switches, LEDs, Keys)
 ```
 
 ---
 
 ## 7. Team Work Breakdown & Responsibilities (4 Members)
 
-To ensure smooth collaboration, accountability, and project success, the workload is distributed across 4 specialized roles:
+The project tasks are distributed across 4 team members: **Thanh Bình**, **Thế Anh**, **Minh Đức**, and **Hữu Thăng**:
 
 ```mermaid
 flowchart TD
-    M1["Member 1: RTL Architecture Lead\n- Spec & Architecture\n- SystemVerilog RTL"]
-    M2["Member 2: Verification Lead\n- Self-checking Testbench\n- Coverage & Sign-off"]
-    M3["Member 3: FPGA Implementation Lead\n- Vivado Synthesis & STA\n- Hardware Bring-up & Demo"]
-    M4["Member 4: Documentation & Slides Lead\n- Technical Report\n- Presentation Deck & Video"]
+    M1["Thanh Bình: RTL Architecture Lead\n- Spec & Architecture\n- SystemVerilog RTL Core"]
+    M2["Thế Anh: Verification Lead\n- Python Golden Model\n- Self-checking Testbench & SVA"]
+    M3["Minh Đức: FPGA Implementation Lead\n- Intel Quartus Prime Flow & SDC\n- Hardware Bring-up & Demo"]
+    M4["Hữu Thăng: Documentation & Slides Lead\n- Technical Report (IEEE Format)\n- Presentation Deck & Video"]
 
     M1 -->|RTL Code| M2
     M1 -->|Synthesizable RTL| M3
-    M2 -->|Sim Waveforms & Metrics| M4
-    M3 -->|Utilization & FPGA Timing| M4
+    M2 -->|Sim Waveforms & Pass Rates| M4
+    M3 -->|Quartus Fitting & TimeQuest STA| M4
 ```
 
-### Role Breakdown
+### Assignment & Issues Matrix
 
 | Member | Primary Role | Assigned Tasks / GitHub Issues | Key Deliverables |
 | :--- | :--- | :--- | :--- |
-| **Member 1** | **RTL Architecture Lead** | • [Issue #3](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/3): Microarchitecture Spec & Interface Contract<br>• [Issue #2](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/2): SystemVerilog RTL Design (`mac_top`) | Synthesizable RTL, clean linting, datapath pipelining. |
-| **Member 2** | **Design Verification Lead** | • [Issue #4](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/4): Python Golden Model & Stimulus Suite<br>• [Issue #1](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/1): Self-Checking Testbench & Coverage Sign-off | Randomized TB, waveform dumps, 100% functional coverage. |
-| **Member 3** | **FPGA Implementation Lead** | • [Issue #5](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/5): Vivado Synthesis, Constraints (.xdc) & STA<br>• [Issue #6](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/6): Board Bring-Up & Hardware Demo Wrapper | Bitstream, resource utilization report, physical FPGA demo. |
-| **Member 4** | **Documentation & Presentation Lead** | • [Issue #7](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/7): Comprehensive Project Technical Report<br>• [Issue #8](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/8): Presentation Slides & Demo Walkthrough | Formal project report (PDF), slide deck, demo recording. |
+| **Thanh Bình** | **RTL Architecture Lead** | • [Issue #3](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/3): Microarchitecture Spec & Interface Contract<br>• [Issue #2](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/2): SystemVerilog RTL Implementation (`mac_top`) | Architectural spec, mathematical sizing proof, synthesizable RTL (`mac_top.sv`, `shift_reg.sv`, `multiplier_4x4.sv`, `adder_10bit.sv`), clean linting. |
+| **Thế Anh** | **Design Verification Lead** | • [Issue #4](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/4): Python Golden Model & Stimulus Suite<br>• [Issue #1](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/1): Self-Checking Testbench & Coverage Sign-off | Python reference model (`mac_ref_model.py`), corner-case vectors (`test_vectors.hex`), self-checking SystemVerilog testbench (`mac_top_tb.sv`), SVA assertions, waveform traces. |
+| **Minh Đức** | **FPGA Implementation Lead** | • [Issue #5](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/5): Intel Quartus Prime Synthesis, Constraints (.sdc) & STA<br>• [Issue #6](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/6): Board Bring-Up, SOF Programming & Hardware Demo | Quartus Prime project, TimeQuest SDC constraints (`mac_de10_lite.sdc`), TimeQuest STA closure, FPGA board wrapper (`top_fpga_wrapper.sv`), SOF file, hardware demo. |
+| **Hữu Thăng** | **Documentation & Presentation Lead** | • [Issue #7](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/7): Comprehensive Project Technical Report<br>• [Issue #8](https://github.com/ducnguyen-git/EE5427---4x4-Multiply-Accumulate/issues/8): Presentation Slides & Demo Walkthrough | Formal IEEE/course design report (PDF), presentation slide deck (`.pptx` / PDF), annotated waveform figures, video demo recording, defense Q&A preparation. |
 
 ---
 
@@ -155,28 +157,53 @@ Generate random test vectors and cross-verify with the Python reference model:
 python tb/mac_ref_model.py
 ```
 
-### Running SystemVerilog Simulation
-Using **Vivado xsim**:
+### Running Simulation in Questa / ModelSim (Intel FPGA Edition)
 ```bash
-xvlog -sv rtl/multiplier_4x4.sv rtl/adder_10bit.sv rtl/shift_reg.sv rtl/mac_top.sv tb/mac_top_tb.sv
-xelab -top mac_top_tb -snapshot mac_sim
-xsim mac_sim -R
-```
-
-Using **ModelSim / QuestaSim**:
-```bash
+# Create and map work library
 vlib work
-vlog -sv rtl/*.sv tb/*.sv
+vmap work work
+
+# Compile synthesizable RTL and testbench
+vlog -sv rtl/multiplier_4x4.sv rtl/adder_10bit.sv rtl/shift_reg.sv rtl/mac_top.sv tb/mac_top_tb.sv
+
+# Run simulation
 vsim -c -do "run -all; quit" mac_top_tb
 ```
 
 ---
 
-## 9. FPGA Resource Utilization (Artix-7 xc7a35t)
+## 9. Intel Quartus Prime FPGA Flow & Resource Utilization
 
-| Resource | Estimated Utilization | Available on Basys 3 | Percentage |
+### Target Device: Intel MAX 10 (`10M50DAF484C7G` / Terasic DE10-Lite)
+
+### Quartus Prime Compilation Flow:
+1. **Analysis & Synthesis**:
+   ```bash
+   quartus_map --read_settings_files=on --write_settings_files=off mac_project -c top_fpga_wrapper
+   ```
+2. **Fitter (Place & Route)**:
+   ```bash
+   quartus_fit --read_settings_files=off --write_settings_files=off mac_project -c top_fpga_wrapper
+   ```
+3. **Assembler (Generate `.sof`)**:
+   ```bash
+   quartus_asm --read_settings_files=off --write_settings_files=off mac_project -c top_fpga_wrapper
+   ```
+4. **TimeQuest Static Timing Analysis**:
+   ```bash
+   quartus_sta mac_project -c top_fpga_wrapper
+   ```
+5. **Program Board via USB-Blaster**:
+   ```bash
+   quartus_pgm -m jtag -c 1 -o "p;output_files/top_fpga_wrapper.sof"
+   ```
+
+### Estimated Resource Utilization on Intel MAX 10:
+
+| Resource Type | Estimated Usage | Available on Device | Utilization (%) |
 | :--- | :---: | :---: | :---: |
-| **LUTs (Logic)** | ~35 - 50 | 20,800 | < 0.5% |
-| **Flip-Flops (FFs)** | ~45 - 60 | 41,600 | < 0.5% |
-| **DSP48 Slices** | 0 (Implemented in LUTs) | 90 | 0% |
-| **Target Clock** | 100 MHz ($T_{clk} = 10\text{ ns}$) | - | Slack $> 4\text{ ns}$ |
+| **Total Logic Elements (LEs)** | ~40 - 65 | 49,760 | < 0.2% |
+| **Dedicated Logic Registers** | ~45 - 60 | 49,760 | < 0.2% |
+| **Embedded Multiplier 9-bit elements** | 0 (Inferred in LEs) | 288 | 0% |
+| **Memory Bits (M9K)** | 0 | 1,677,312 | 0% |
+| **Operating Frequency ($F_{max}$)** | > 150 MHz | - | Positive Setup & Hold Slack |
