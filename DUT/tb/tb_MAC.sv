@@ -183,12 +183,13 @@ module tb_MAC;
     initial begin
 
         $monitor(
-            "Time=%0t | START=%b | count=%d | A_r=%h | B_r=%h | MUL_C_r=%d | ACC=%d | DONE=%b",
+            "Time=%0t | START=%b | count=%d | A_r=%h | B_r=%d | C = %d | MUL_C_r=%d | ACC=%d | DONE=%b",
             $time,
             START,
             dut.count,
             dut.A_r,
             dut.B_r,
+	    C,
             dut.MUL_C_r,
             dut.ADDER_C_r,
             DONE
