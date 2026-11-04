@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 
 module tb_DUT;
-
+//`define USE_4MAC
     //==================================================
     // DUT signals
     //==================================================
@@ -16,10 +16,8 @@ module tb_DUT;
     logic [9:0]  C;
     logic        DONE;
 
-    // L?u k?t qu? ??c ???c t? DUT
     logic [9:0] C_result [0:15];
 
-    // L?u k?t qu? mong ??i
     integer C_expected [0:15];
 
     integer error_count;
@@ -29,8 +27,8 @@ module tb_DUT;
     //==================================================
     // Instantiate DUT
     //==================================================
-
-    DUT dut (
+`ifdef USE_4MAC
+	DUT_4MAC dut (
         .clk    (clk),
         .rst_n  (rst_n),
         .LOAD   (LOAD),
@@ -41,7 +39,20 @@ module tb_DUT;
         .C      (C),
         .DONE   (DONE)
     );
-
+`else
+	DUT dut (
+        .clk    (clk),
+        .rst_n  (rst_n),
+        .LOAD   (LOAD),
+        .START  (START),
+        .SELECT (SELECT),
+        .A      (A),
+        .B      (B),
+        .C      (C),
+        .DONE   (DONE)
+    );
+`endif
+	
     //==================================================
     // Clock generation
     // Period = 10 ns
@@ -56,8 +67,6 @@ module tb_DUT;
     end
 
     //==================================================
-    // Function: l?y m?t ph?n t? t? bus ma tr?n 64 bit
-    //
     // M[63:60] = M[0][0]
     // M[59:56] = M[0][1]
     // ...
@@ -80,9 +89,6 @@ module tb_DUT;
     endfunction
 
     //==================================================
-    // Task: t?o ng?u nhiên ma tr?n A và B
-    //
-    // M?i ph?n t? có giá tr? t? 0 ??n 15
     //==================================================
 
     task automatic randomize_matrices;
@@ -105,7 +111,6 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: in m?t ma tr?n ??u vào 4x4
     //==================================================
 
     task automatic print_input_matrix(
@@ -146,10 +151,6 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: tính k?t qu? mong ??i
-    //
-    // C[row][column]
-    //   = SUM(A[row][k] * B[k][column])
     //==================================================
 
     task automatic calculate_expected_result;
@@ -185,7 +186,6 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: in ma tr?n k?t qu? mong ??i
     //==================================================
 
     task automatic print_expected_matrix;
@@ -219,13 +219,10 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: LOAD ma tr?n A và B
     //==================================================
 
     task automatic load_matrices;
         begin
-            // Phát LOAD t?i c?nh xu?ng ?? DUT l?y d? li?u
-            // ?n ??nh t?i c?nh lên ti?p theo
             @(negedge clk);
             LOAD = 1'b1;
 
@@ -240,12 +237,10 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: phát xung START
     //==================================================
 
     task automatic start_calculation;
         begin
-            // M?t chu k? ngh? sau LOAD
             @(negedge clk);
 
             START = 1'b1;
@@ -261,7 +256,6 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: ch? DONE v?i timeout
     //==================================================
 
     task automatic wait_for_done;
@@ -270,7 +264,7 @@ module tb_DUT;
         begin
             timeout_counter = 0;
 
-            // B?o ??m DONE c?a l?n ch?y tr??c ?ã tr? v? 0
+            // B?o ??m DONE c?a l?n ch?y tr??c ?  tr? v? 0
             while (
                 DONE !== 1'b0 &&
                 timeout_counter < 30
@@ -281,10 +275,9 @@ module tb_DUT;
 
             timeout_counter = 0;
 
-            // Ch? DONE c?a phép tính hi?n t?i
             while (
                 DONE !== 1'b1 &&
-                timeout_counter < 30
+                timeout_counter < 100
             ) begin
                 @(posedge clk);
                 timeout_counter = timeout_counter + 1;
@@ -300,8 +293,6 @@ module tb_DUT;
 
                 $fatal(1);
             end
-
-            // Ch? non-blocking assignment và logic t? h?p ?n ??nh
             #1;
 
             $display(
@@ -312,7 +303,6 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: ??c và in C theo t?ng giá tr? SELECT
     //==================================================
 
     task automatic read_and_print_result;
@@ -353,7 +343,6 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: in ma tr?n C nh?n t? DUT
     //==================================================
 
     task automatic print_result_matrix;
@@ -387,7 +376,6 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: ki?m tra 16 k?t qu?
     //==================================================
 
     task automatic check_result;
@@ -450,7 +438,7 @@ module tb_DUT;
     endtask
 
     //==================================================
-    // Task: th?c hi?n m?t l?n ki?m tra hoàn ch?nh
+    // Task: th?c hi?n m?t l?n ki?m tra ho n ch?nh
     //==================================================
 
     task automatic run_one_test(
@@ -465,21 +453,18 @@ module tb_DUT;
             $display("                START TEST %0d", test_number);
             $display("##################################################");
 
-            // T?o A và B random
+
             randomize_matrices();
 
-            // In hai ma tr?n ??u vào
             print_input_matrix("MATRIX A", A);
             print_input_matrix("MATRIX B", B);
 
-            // Tính và in k?t qu? tham chi?u
             calculate_expected_result();
             print_expected_matrix();
 
-            // N?p A và B vào DUT
             load_matrices();
 
-            // Kh?i ??ng 16 MAC
+
             start_calculation();
 
             $display(
@@ -487,23 +472,19 @@ module tb_DUT;
                 $time
             );
 
-            // Ch? k?t qu?
             wait_for_done();
 
-            // ??c C v?i SELECT t? 0 ??n 15
             read_and_print_result();
 
-            // In C d??i d?ng ma tr?n
             print_result_matrix();
 
-            // So sánh v?i k?t qu? mong ??i
             check_result();
 
             $display("##################################################");
             $display("                 END TEST %0d", test_number);
             $display("##################################################");
 
-            // ??m b?o DONE tr? v? 0 tr??c phép tính ti?p theo
+            // ??m b?o DONE tr? v? 0 tr??c ph p t nh ti?p theo
             @(posedge clk);
             wait (DONE === 1'b0);
         end
@@ -525,8 +506,6 @@ module tb_DUT;
         total_error_count = 0;
         test_number       = 0;
 
-        // Có th? ??t seed c? ??nh ?? k?t qu? ???c l?p l?i
-        // gi?a các l?n mô ph?ng.
         void'($urandom(32'h2026_1025));
 
         // Reset DUT
@@ -539,7 +518,6 @@ module tb_DUT;
         $display("DUT RESET RELEASED AT %0t", $time);
 
         //==================================================
-        // Ch?y 3 l?n v?i A và B random m?i m?i l?n
         //==================================================
 
         run_one_test(1);
