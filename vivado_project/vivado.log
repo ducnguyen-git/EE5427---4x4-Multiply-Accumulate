@@ -1,0 +1,155 @@
+INFO: [Common 17-3922] A valid Vivado Design Suite BASIC license has been detected. Your current license is active and will expire on 27-sep-2027.
+#-----------------------------------------------------------
+# Vivado v2026.1 (64-bit)
+# SW Build 6511674 on Tue Jun 16 11:01:26 MDT 2026
+# IP Build 6504888 on Tue Jun 09 09:05:25 MDT 2026
+# SharedData Build 6501428 on Mon Jun 08 17:34:18 MDT 2026
+# Start of session at: Sun Nov  1 13:13:31 2026
+# Process ID         : 33013
+# Current directory  : /home/thomasle/Personal/projects/4x4-mac/vivado_project
+# Command line       : vivado mac_4x4_nexys_a7.xpr
+# Log file           : /home/thomasle/Personal/projects/4x4-mac/vivado_project/vivado.log
+# Journal file       : /home/thomasle/Personal/projects/4x4-mac/vivado_project/vivado.jou
+# Running On         : nightly-deb
+# Platform           : ubuntu
+# Operating System   : Ubuntu"
+VERSION_ID="24.04 24.04.4 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+# Processor Detail   : Intel(R) Core(TM) Ultra 5 225H
+# CPU Frequency      : 4549.410 MHz
+# CPU Physical cores : 14
+# CPU Logical cores  : 14
+# Host memory        : 33051 MB
+# Swap memory        : 11078 MB
+# Total Virtual      : 44129 MB
+# Available Virtual  : 39384 MB
+#-----------------------------------------------------------
+start_gui
+open_project mac_4x4_nexys_a7.xpr
+INFO: [filemgmt 56-3] Default IP Output Path : Could not find the directory '/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.gen/sources_1'.
+Scanning sources...
+Finished scanning sources
+WARNING: [Project 1-5713] Board part '' set for the project  is not found. BoardPart property will be unset. Please select board from latest repo build 
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository '/home/thomasle/Xilinx/2026.1/data/ip'.
+update_compile_order -fileset sources_1
+open_hw_manager
+connect_hw_server -allow_non_jtag
+INFO: [Labtools 27-2285] Connecting to hw_server url TCP:localhost:3121
+INFO: [Labtools 27-2222] Launching hw_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+****** Xilinx hw_server v2026.1
+  **** Build date : May 29 2026 at 20:56:35
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+
+INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:0
+INFO: [Labtools 27-3417] Launching cs_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+****** Xilinx cs_server v2026.1
+  **** Build Info : #60 | 2026-06-15 19:15 UTC | a9691a9
+    ** Copyright 2017-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+open_hw_target
+INFO: [Labtoolstcl 44-466] Opening hw_target localhost:3121/xilinx_tcf/Digilent/210292BD7B8CA
+set_property PROGRAM.FILE {/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.runs/impl_1/top_fpga_wrapper.bit} [get_hw_devices xc7a100t_0]
+current_hw_device [get_hw_devices xc7a100t_0]
+refresh_hw_device -update_hw_probes false [lindex [get_hw_devices xc7a100t_0] 0]
+INFO: [Labtools 27-1434] Device xc7a100t (JTAG device index = 0) is programmed with a design that has no supported soft debug core(s) in it.
+set_property PROBES.FILE {} [get_hw_devices xc7a100t_0]
+set_property FULL_PROBES.FILE {} [get_hw_devices xc7a100t_0]
+set_property PROGRAM.FILE {/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.runs/impl_1/top_fpga_wrapper.bit} [get_hw_devices xc7a100t_0]
+program_hw_devices [get_hw_devices xc7a100t_0]
+INFO: [Labtools 27-3164] End of startup status: HIGH
+refresh_hw_device [lindex [get_hw_devices xc7a100t_0] 0]
+INFO: [Labtools 27-1434] Device xc7a100t (JTAG device index = 0) is programmed with a design that has no supported soft debug core(s) in it.
+create_ip -name axi_uartlite -vendor xilinx.com -library ip -version 2.0 -module_name axi_uartlite_0
+set_property -dict [list \
+  CONFIG.C_BAUDRATE {115200} \
+  CONFIG.PARITY {Even} \
+] [get_ips axi_uartlite_0]
+generate_target {instantiation_template} [get_files /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci]
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'axi_uartlite_0'...
+update_compile_order -fileset sources_1
+generate_target all [get_files  /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci]
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'axi_uartlite_0'...
+WARNING: [IP_Flow 19-4994] Overwriting existing constraint file '/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.gen/sources_1/ip/axi_uartlite_0/axi_uartlite_0_ooc.xdc'
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'axi_uartlite_0'...
+INFO: [IP_Flow 19-1686] Generating 'Implementation' target for IP 'axi_uartlite_0'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'axi_uartlite_0'...
+catch { config_ip_cache -export [get_ips -all axi_uartlite_0] }
+export_ip_user_files -of_objects [get_files /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci] -no_script -sync -force -quiet
+create_ip_run [get_files -of_objects [get_fileset sources_1] /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci]
+launch_runs axi_uartlite_0_synth_1 -jobs 7
+[Sun Nov  1 13:52:22 2026] Launched axi_uartlite_0_synth_1...
+Run output will be captured here: /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.runs/axi_uartlite_0_synth_1/runme.log
+export_simulation -lib_map_path [list {modelsim=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/modelsim} {questa=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/questa} {xcelium=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/xcelium} {vcs=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/vcs} {riviera=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/riviera}] -of_objects [get_files /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci] -directory /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.ip_user_files/sim_scripts -ip_user_files_dir /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.ip_user_files -ipstatic_source_dir /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.ip_user_files/ipstatic -use_ip_compiled_libs -force -quiet
+create_bd_design "uart_comm"
+Wrote  : </home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/bd/uart_comm/uart_comm.bd> 
+update_compile_order -fileset sources_1
+startgroup
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_uartlite:2.0 axi_uartlite_0
+endgroup
+set_property location {1 97 -168} [get_bd_cells axi_uartlite_0]
+set_property location {1 112 -202} [get_bd_cells axi_uartlite_0]
+apply_bd_automation -rule xilinx.com:bd_rule:board -config { Manual_Source {Auto}}  [get_bd_intf_pins axi_uartlite_0/UART]
+INFO: [BoardRule 102-8] create_bd_intf_port -mode Master -vlnv xilinx.com:interface:uart_rtl:1.0 uart_rtl_0
+INFO: [BoardRule 102-9] connect_bd_intf_net /uart_rtl_0 /axi_uartlite_0/UART
+open_bd_design {/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/bd/uart_comm/uart_comm.bd}
+delete_bd_objs [get_bd_intf_nets axi_uartlite_0_UART] [get_bd_cells axi_uartlite_0]
+delete_bd_objs [get_bd_intf_ports uart_rtl_0]
+open_bd_design {/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/bd/uart_comm/uart_comm.bd}
+undo
+INFO: [Common 17-17] undo 'delete_bd_objs [get_bd_intf_ports uart_rtl_0]'
+undo
+INFO: [Common 17-17] undo 'delete_bd_objs [get_bd_intf_nets axi_uartlite_0_UART] [get_bd_cells axi_uartlite_0]'
+undo
+INFO: [Common 17-17] undo 'apply_bd_automation -rule xilinx.com:bd_rule:board -config { Manual_Source {Auto}}  [get_bd_intf_pins axi_uartlite_0/UART]'
+undo
+INFO: [Common 17-17] undo 'set_property location {1 112 -202} [get_bd_cells axi_uartlite_0]'
+undo
+INFO: [Common 17-17] undo 'set_property location {1 97 -168} [get_bd_cells axi_uartlite_0]'
+undo
+INFO: [Common 17-17] undo 'endgroup'
+INFO: [Common 17-17] undo 'create_bd_cell -type ip -vlnv xilinx.com:ip:axi_uartlite:2.0 axi_uartlite_0'
+INFO: [Common 17-17] undo 'startgroup'
+report_ip_status -name ip_status 
+export_ip_user_files -of_objects  [get_files /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/bd/uart_comm/uart_comm.bd] -no_script -reset -force -quiet
+remove_files  /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/bd/uart_comm/uart_comm.bd
+Wrote  : </home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/bd/uart_comm/ui/bd_8108827d.ui> 
+file delete -force /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/bd/uart_comm
+file delete -force /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.gen/sources_1/bd/uart_comm
+close_hw_manager
+reset_property  ALL_PROPS  [get_ips axi_uartlite_0]
+reset_target all [get_files  /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci]
+export_ip_user_files -of_objects  [get_files  /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci] -sync -no_script -force -quiet
+delete_ip_run [get_files -of_objects [get_fileset axi_uartlite_0] /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci]
+INFO: [Project 1-386] Moving file '/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci' from fileset 'axi_uartlite_0' to fileset 'sources_1'.
+generate_target all [get_files  /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci]
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'axi_uartlite_0'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'axi_uartlite_0'...
+WARNING: [IP_Flow 19-4994] Overwriting existing constraint file '/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.gen/sources_1/ip/axi_uartlite_0/axi_uartlite_0_ooc.xdc'
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'axi_uartlite_0'...
+INFO: [IP_Flow 19-1686] Generating 'Implementation' target for IP 'axi_uartlite_0'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'axi_uartlite_0'...
+catch { config_ip_cache -export [get_ips -all axi_uartlite_0] }
+export_ip_user_files -of_objects [get_files /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci] -no_script -sync -force -quiet
+create_ip_run [get_files -of_objects [get_fileset sources_1] /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci]
+launch_runs axi_uartlite_0_synth_1 -jobs 7
+[Sun Nov  1 14:09:19 2026] Launched axi_uartlite_0_synth_1...
+Run output will be captured here: /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.runs/axi_uartlite_0_synth_1/runme.log
+export_simulation -lib_map_path [list {modelsim=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/modelsim} {questa=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/questa} {xcelium=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/xcelium} {vcs=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/vcs} {riviera=/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/compile_simlib/riviera}] -of_objects [get_files /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci] -directory /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.ip_user_files/sim_scripts -ip_user_files_dir /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.ip_user_files -ipstatic_source_dir /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.ip_user_files/ipstatic -use_ip_compiled_libs -force -quiet
+make_wrapper -files [get_files /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.srcs/sources_1/ip/axi_uartlite_0/axi_uartlite_0.xci] -language SystemVerilog -add
+INFO: [IP_Flow 19-1706] Not generating 'Instantiation Template' target for IP 'axi_uartlite_0'. Target already exists and is up to date.
+update_compile_order -fileset sources_1
+WARNING: [filemgmt 56-199] Attempt to get parsing info during refresh. "On-the-fly" syntax checking information may be incorrect. [/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.gen/sources_1/ip/axi_uartlite_0/axi_uartlite_0_sv.sveo:]
+WARNING: [filemgmt 56-199] Attempt to get parsing info during refresh. "On-the-fly" syntax checking information may be incorrect. [/home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.gen/sources_1/ip/axi_uartlite_0/axi_uartlite_0_sv.sveo:]
+update_compile_order -fileset sources_1
+exit
+INFO: [Common 17-206] Exiting Vivado at Sun Nov  1 14:30:56 2026...

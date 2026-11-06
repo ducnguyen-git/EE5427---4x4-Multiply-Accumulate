@@ -1,0 +1,2 @@
+axi_uartlite_0.vhd,vhdl,xil_defaultlib,../../../../mac_4x4_nexys_a7.gen/sources_1/ip/axi_uartlite_0/sim/axi_uartlite_0.vhd,incdir="../../../../../../../../Xilinx/2026.1/data/rsb/busdef"
+glbl.v,Verilog,xil_defaultlib,glbl.v

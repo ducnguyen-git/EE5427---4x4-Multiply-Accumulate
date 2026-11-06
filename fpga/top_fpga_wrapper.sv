@@ -37,6 +37,8 @@
 // ==============================================================================
 
 `timescale 1ns / 1ps
+`include "vivado_interfaces.svh"
+
 
 module top_fpga_wrapper (
     input  logic        CLK100MHZ,   // 100 MHz onboard oscillator (Nexys A7 pin E3)
