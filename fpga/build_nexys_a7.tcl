@@ -23,6 +23,12 @@ add_files -norecurse [list \
     "DUT/rtl/MAC_MULTIPLIER.sv" \
     "DUT/rtl/MAC.sv" \
     "DUT/rtl/DUT.sv" \
+    "DUT/rtl/uart/uart_pkg.sv" \
+    "DUT/rtl/uart/uart_if.sv" \
+    "DUT/rtl/uart/uart_clk.sv" \
+    "DUT/rtl/uart/uart_rx.sv" \
+    "DUT/rtl/uart/uart_tx.sv" \
+    "DUT/rtl/DUT_uart.sv" \
     "fpga/top_fpga_wrapper.sv" \
 ]
 
@@ -35,6 +41,8 @@ add_files -fileset constrs_1 -norecurse "fpga/constraints/nexys_a7_100t.xdc"
 # Set Top Level Entity
 set_property top top_fpga_wrapper [current_fileset]
 update_compile_order -fileset sources_1
+
+set_property STEPS.ROUTE_DESIGN.TCL.PRE [file normalize "fpga/power_activity.tcl"] [get_runs impl_1]
 
 # Run Synthesis
 puts "===> Starting Synthesis..."

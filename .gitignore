@@ -1,35 +1,9 @@
-# Intel Quartus Prime EDA Artifacts
-db/
-incremental_db/
-output_files/
-simulation/
-greybox_tmp/
-hc_output/
-.qsys_edit/
-*.rpt
-*.sof
-*.pof
-*.qws
-*.summary
-*.smsg
-*.pin
-*.done
-*.jdi
-*.sld
-*.qxp
-*.qar
-*.sopcinfo
-c5_pin_model_dump.txt
-
-# ModelSim / QuestaSim (Intel FPGA Edition)
-work/
-transcript
-*.wlf
-*.vstf
-modelsim.ini
-
 # Vivado artifacts
+.Xil/
+build/
 vivado_project/*
+vivado*
+clockInfo.txt
 !vivado_project/mac_4x4_nexys_a7.xpr
 
 # Python Artifacts

@@ -89,3 +89,24 @@ set_property -dict { PACKAGE_PIN T14   IOSTANDARD LVCMOS33 } [get_ports { an[5] 
 set_property -dict { PACKAGE_PIN K2    IOSTANDARD LVCMOS33 } [get_ports { an[6] }]; # Digit 6
 set_property -dict { PACKAGE_PIN U13   IOSTANDARD LVCMOS33 } [get_ports { an[7] }]; # Digit 7 (Leftmost)
 
+## USB-UART bridge (RXD/TXD are named from the FPGA perspective).
+set_property -dict { PACKAGE_PIN C4 IOSTANDARD LVCMOS33 } [get_ports UART_RXD]
+set_property -dict { PACKAGE_PIN D4 IOSTANDARD LVCMOS33 } [get_ports UART_TXD]
+
+## Configuration bank 0 is powered at 3.3 V on the Nexys A7.
+set_property CFGBVS VCCO [current_design]
+set_property CONFIG_VOLTAGE 3.3 [current_design]
+
+## Buttons, switches and UART RX are asynchronous to the system clock.
+## Use a full clock-period phase window as the delay reference, then cut
+## external paths: these ports have no synchronous setup/hold relationship.
+set async_inputs [get_ports {CPU_RESETN BTNC BTNU BTND BTNL BTNR SW[*] UART_RXD}]
+set_input_delay -clock sys_clk_pin -min 0 $async_inputs
+set_input_delay -clock sys_clk_pin -max 10 $async_inputs
+set_false_path -from $async_inputs
+
+## LEDs/display and UART TX have no external synchronous capture clock.
+set async_outputs [get_ports {LED[*] seg[*] dp an[*] UART_TXD}]
+set_output_delay -clock sys_clk_pin -min 0 $async_outputs
+set_output_delay -clock sys_clk_pin -max 10 $async_outputs
+set_false_path -to $async_outputs

@@ -23,6 +23,12 @@ set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/MAC_ADDER.sv
 set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/MAC_MULTIPLIER.sv
 set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/MAC.sv
 set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/DUT.sv
+set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/uart/uart_pkg.sv
+set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/uart/uart_if.sv
+set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/uart/uart_clk.sv
+set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/uart/uart_rx.sv
+set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/uart/uart_tx.sv
+set_global_assignment -name SYSTEMVERILOG_FILE DUT/rtl/DUT_uart.sv
 set_global_assignment -name SYSTEMVERILOG_FILE fpga/top_fpga_wrapper.sv
 
 # Compilation Flow

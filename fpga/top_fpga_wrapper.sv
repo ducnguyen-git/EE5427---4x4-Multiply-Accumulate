@@ -37,11 +37,12 @@
 // ==============================================================================
 
 `timescale 1ns / 1ps
-`include "vivado_interfaces.svh"
 
 
 module top_fpga_wrapper (
     input  logic        CLK100MHZ,   // 100 MHz onboard oscillator (Nexys A7 pin E3)
+    input  logic        UART_RXD,    // USB-UART receive
+    output logic        UART_TXD,    // USB-UART transmit
     input  logic        CPU_RESETN,  // Active-low CPU reset push button (pin C12)
     input  logic        BTNC,        // Center push button: START (pin N17)
     input  logic        BTNU,        // Up push button: LOAD (pin M18)
@@ -58,18 +59,20 @@ module top_fpga_wrapper (
     // =========================================================================
     // 1. Reset Generation & Synchronization
     // =========================================================================
-    // Asynchronous assert, synchronous deassert reset
-    logic rst_raw;
-    assign rst_raw = CPU_RESETN & (~BTND);
-
-    logic rst_sync0, rst_sync1;
-    always_ff @(posedge CLK100MHZ or negedge rst_raw) begin
-        if (!rst_raw) begin
+    // CPU reset asserts asynchronously; the soft reset is sampled on the clock.
+    (* ASYNC_REG = "TRUE" *) logic rst_sync0, rst_sync1;
+    (* ASYNC_REG = "TRUE" *) logic btnd_s0, btnd_s1;
+    always_ff @(posedge CLK100MHZ or negedge CPU_RESETN) begin
+        if (!CPU_RESETN) begin
+            btnd_s0 <= 1'b0;
+            btnd_s1 <= 1'b0;
             rst_sync0 <= 1'b0;
             rst_sync1 <= 1'b0;
         end else begin
+            btnd_s0 <= BTND;
+            btnd_s1 <= btnd_s0;
             rst_sync0 <= 1'b1;
-            rst_sync1 <= rst_sync0;
+            rst_sync1 <= rst_sync0 && !btnd_s1;
         end
     end
     wire rst_n = rst_sync1;
@@ -77,10 +80,20 @@ module top_fpga_wrapper (
     // =========================================================================
     // 2. Push Button Synchronization & Edge Detection
     // =========================================================================
-    logic btnc_s0, btnc_s1, btnc_prev;
-    logic btnu_s0, btnu_s1, btnu_prev;
-    logic btnl_s0, btnl_s1, btnl_prev;
-    logic btnr_s0, btnr_s1, btnr_prev;
+    (* ASYNC_REG = "TRUE" *) logic [15:0] sw_meta, sw_sync;
+    always_ff @(posedge CLK100MHZ) begin
+        sw_meta <= SW;
+        sw_sync <= sw_meta;
+    end
+
+    (* ASYNC_REG = "TRUE" *) logic btnc_s0, btnc_s1;
+    logic btnc_prev;
+    (* ASYNC_REG = "TRUE" *) logic btnu_s0, btnu_s1;
+    logic btnu_prev;
+    (* ASYNC_REG = "TRUE" *) logic btnl_s0, btnl_s1;
+    logic btnl_prev;
+    (* ASYNC_REG = "TRUE" *) logic btnr_s0, btnr_s1;
+    logic btnr_prev;
     logic [3:0] btn_select_counter;
 
     always_ff @(posedge CLK100MHZ or negedge rst_n) begin
@@ -142,12 +155,12 @@ module top_fpga_wrapper (
             custom_b[4]  <= 4'd0;  custom_b[5]  <= 4'd2;  custom_b[6]  <= 4'd0;  custom_b[7]  <= 4'd1;
             custom_b[8]  <= 4'd1;  custom_b[9]  <= 4'd0;  custom_b[10] <= 4'd2;  custom_b[11] <= 4'd0;
             custom_b[12] <= 4'd0;  custom_b[13] <= 4'd1;  custom_b[14] <= 4'd0;  custom_b[15] <= 4'd2;
-        end else if (btnl_pulse && (SW[14:13] == 2'b11)) begin
+        end else if (btnl_pulse && (sw_sync[14:13] == 2'b11)) begin
             // Manual write into custom matrix
-            if (SW[8] == 1'b0) begin
-                custom_a[SW[7:4]] <= SW[12:9];
+            if (sw_sync[8] == 1'b0) begin
+                custom_a[sw_sync[7:4]] <= sw_sync[12:9];
             end else begin
-                custom_b[SW[7:4]] <= SW[12:9];
+                custom_b[sw_sync[7:4]] <= sw_sync[12:9];
             end
         end
     end
@@ -168,7 +181,7 @@ module top_fpga_wrapper (
     logic [63:0] matrix_b_in;
 
     always_comb begin
-        case (SW[14:13])
+        case (sw_sync[14:13])
             // Pattern 0: Identity Matrix Test
             // A = I_4 (diagonal 1s, off-diagonal 0s)
             // B = {{1,2,3,4}, {5,6,7,8}, {9,1,2,3}, {4,5,6,7}}
@@ -279,16 +292,25 @@ module top_fpga_wrapper (
     // SW[3:2] = Row (0..3)
     // SW[1:0] = Column (0..3)
     // Pressing BTNR cycles to the next element
-    assign active_select = SW[3:0] + btn_select_counter;
+    assign active_select = sw_sync[3:0] + btn_select_counter;
+
+    logic uart_busy, uart_load, uart_start;
+    logic [63:0] uart_a, uart_b;
+    logic [3:0] uart_select;
+    DUT_uart u_uart (
+        .clk(CLK100MHZ), .rst_n(rst_n), .rx(UART_RXD), .tx(UART_TXD),
+        .busy(uart_busy), .LOAD(uart_load), .START(uart_start),
+        .A(uart_a), .B(uart_b), .SELECT(uart_select), .C(dut_c), .DONE(dut_done)
+    );
 
     DUT u_dut_core (
         .clk    (CLK100MHZ),
         .rst_n  (rst_n),
-        .LOAD   (dut_load),
-        .START  (dut_start),
-        .SELECT (active_select),
-        .A      (matrix_a_in),
-        .B      (matrix_b_in),
+        .LOAD   (uart_busy ? uart_load : dut_load),
+        .START  (uart_busy ? uart_start : dut_start),
+        .SELECT (uart_busy ? uart_select : active_select),
+        .A      (uart_busy ? uart_a : matrix_a_in),
+        .B      (uart_busy ? uart_b : matrix_b_in),
         .C      (dut_c),
         .DONE   (dut_done)
     );
@@ -304,7 +326,7 @@ module top_fpga_wrapper (
     assign LED[9:0]   = dut_c;
     assign LED[10]    = done_latched;
     assign LED[11]    = is_busy;
-    assign LED[13:12] = SW[14:13];
+    assign LED[13:12] = sw_sync[14:13];
     assign LED[15:14] = active_select[3:2];
 
     // =========================================================================
@@ -366,26 +388,26 @@ module top_fpga_wrapper (
             // Digit 0: Result Lowest Nibble / Units
             3'd0: begin
                 an = 8'b11111110;
-                current_segments = (SW[15] == 1'b0) ? hex_to_seg(bcd_unit) : hex_to_seg(dut_c[3:0]);
+                current_segments = (sw_sync[15] == 1'b0) ? hex_to_seg(bcd_unit) : hex_to_seg(dut_c[3:0]);
             end
 
             // Digit 1: Result Middle Nibble / Tens
             3'd1: begin
                 an = 8'b11111101;
-                current_segments = (SW[15] == 1'b0) ? hex_to_seg(bcd_tens) : hex_to_seg(dut_c[7:4]);
+                current_segments = (sw_sync[15] == 1'b0) ? hex_to_seg(bcd_tens) : hex_to_seg(dut_c[7:4]);
             end
 
             // Digit 2: Result High Nibble / Hundreds
             3'd2: begin
                 an = 8'b11111011;
-                current_segments = (SW[15] == 1'b0) ? hex_to_seg(bcd_hund) : hex_to_seg({2'b00, dut_c[9:8]});
+                current_segments = (sw_sync[15] == 1'b0) ? hex_to_seg(bcd_hund) : hex_to_seg({2'b00, dut_c[9:8]});
             end
 
             // Digit 3: Result Thousands / 0x indicator (DP indicates Hex mode)
             3'd3: begin
                 an = 8'b11110111;
-                current_dp = ~SW[15]; // Lit in Hex mode
-                current_segments = (SW[15] == 1'b0) ? hex_to_seg(bcd_thou) : hex_to_seg(4'h0);
+                current_dp = ~sw_sync[15]; // Lit in Hex mode
+                current_segments = (sw_sync[15] == 1'b0) ? hex_to_seg(bcd_thou) : hex_to_seg(4'h0);
             end
 
             // Digit 4: Column Index (0..3)
