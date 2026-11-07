@@ -55,24 +55,38 @@ module top_fpga_wrapper (
     output logic        dp,          // 7-segment decimal point
     output logic [7:0]  an           // 7-segment anodes (active-low digit enable)
 );
-
+    logic CLK200MHZ;
+    clk_wiz_0 instance_name
+    (
+        // Clock out ports
+        .clk_out1(CLK200MHZ),     // output clk_out1
+        // Clock in ports
+        .clk_in1(CLK100MHZ)      // input clk_in1
+    );
     // =========================================================================
     // 1. Reset Generation & Synchronization
     // =========================================================================
-    // CPU reset asserts asynchronously; the soft reset is sampled on the clock.
+    // Sample soft reset first, then synchronize release of either reset request.
     (* ASYNC_REG = "TRUE" *) logic rst_sync0, rst_sync1;
     (* ASYNC_REG = "TRUE" *) logic btnd_s0, btnd_s1;
-    always_ff @(posedge CLK100MHZ or negedge CPU_RESETN) begin
+    always_ff @(posedge CLK200MHZ or negedge CPU_RESETN) begin
         if (!CPU_RESETN) begin
             btnd_s0 <= 1'b0;
             btnd_s1 <= 1'b0;
-            rst_sync0 <= 1'b0;
-            rst_sync1 <= 1'b0;
         end else begin
             btnd_s0 <= BTND;
             btnd_s1 <= btnd_s0;
-            rst_sync0 <= 1'b1;
-            rst_sync1 <= rst_sync0 && !btnd_s1;
+        end
+    end
+    // CPU reset asserts asynchronously. Soft reset shifts through the same
+    // chain synchronously, with no LUT on either asynchronous clear input.
+    always_ff @(posedge CLK200MHZ or negedge CPU_RESETN) begin
+        if (!CPU_RESETN) begin
+            rst_sync0 <= 1'b0;
+            rst_sync1 <= 1'b0;
+        end else begin
+            rst_sync0 <= !btnd_s1;
+            rst_sync1 <= rst_sync0;
         end
     end
     wire rst_n = rst_sync1;
@@ -81,7 +95,7 @@ module top_fpga_wrapper (
     // 2. Push Button Synchronization & Edge Detection
     // =========================================================================
     (* ASYNC_REG = "TRUE" *) logic [15:0] sw_meta, sw_sync;
-    always_ff @(posedge CLK100MHZ) begin
+    always_ff @(posedge CLK200MHZ) begin
         sw_meta <= SW;
         sw_sync <= sw_meta;
     end
@@ -96,7 +110,7 @@ module top_fpga_wrapper (
     logic btnr_prev;
     logic [3:0] btn_select_counter;
 
-    always_ff @(posedge CLK100MHZ or negedge rst_n) begin
+    always_ff @(posedge CLK200MHZ or negedge rst_n) begin
         if (!rst_n) begin
             btnc_s0            <= 1'b0;
             btnc_s1            <= 1'b0;
@@ -143,7 +157,7 @@ module top_fpga_wrapper (
     logic [3:0] custom_a [0:15];
     logic [3:0] custom_b [0:15];
 
-    always_ff @(posedge CLK100MHZ or negedge rst_n) begin
+    always_ff @(posedge CLK200MHZ or negedge rst_n) begin
         if (!rst_n) begin
             // Default initial custom matrices: A = [1..16], B = [1..16]
             custom_a[0]  <= 4'd1;  custom_a[1]  <= 4'd2;  custom_a[2]  <= 4'd3;  custom_a[3]  <= 4'd4;
@@ -233,7 +247,7 @@ module top_fpga_wrapper (
     logic done_latched;
     logic is_busy;
 
-    always_ff @(posedge CLK100MHZ or negedge rst_n) begin
+    always_ff @(posedge CLK200MHZ or negedge rst_n) begin
         if (!rst_n) begin
             state        <= ST_IDLE;
             dut_load     <= 1'b0;
@@ -297,14 +311,14 @@ module top_fpga_wrapper (
     logic uart_busy, uart_load, uart_start;
     logic [63:0] uart_a, uart_b;
     logic [3:0] uart_select;
-    DUT_uart u_uart (
-        .clk(CLK100MHZ), .rst_n(rst_n), .rx(UART_RXD), .tx(UART_TXD),
+    DUT_uart #(.CLK_FREQ(200_000_000)) u_uart (
+        .clk(CLK200MHZ), .rst_n(rst_n), .rx(UART_RXD), .tx(UART_TXD),
         .busy(uart_busy), .LOAD(uart_load), .START(uart_start),
         .A(uart_a), .B(uart_b), .SELECT(uart_select), .C(dut_c), .DONE(dut_done)
     );
 
     DUT u_dut_core (
-        .clk    (CLK100MHZ),
+        .clk    (CLK200MHZ),
         .rst_n  (rst_n),
         .LOAD   (uart_busy ? uart_load : dut_load),
         .START  (uart_busy ? uart_start : dut_start),
@@ -332,9 +346,9 @@ module top_fpga_wrapper (
     // =========================================================================
     // 8. Seven-Segment Multiplexed Display Controller (8 Digits)
     // =========================================================================
-    // Refresh counter for 8 digits: 100 MHz / 2^17 ~= 763 Hz (~95 Hz full refresh)
+    // Refresh counter for 8 digits: 200 MHz / 2^17 ~= 1526 Hz (~191 Hz full refresh)
     logic [19:0] refresh_counter;
-    always_ff @(posedge CLK100MHZ or negedge rst_n) begin
+    always_ff @(posedge CLK200MHZ or negedge rst_n) begin
         if (!rst_n) refresh_counter <= 20'd0;
         else        refresh_counter <= refresh_counter + 20'd1;
     end

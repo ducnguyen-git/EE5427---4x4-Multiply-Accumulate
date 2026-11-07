@@ -39,6 +39,15 @@ set_property file_type SystemVerilog [get_files *.sv]
 add_files -fileset constrs_1 -norecurse "fpga/constraints/nexys_a7_100t.xdc"
 
 # Set Top Level Entity
+create_ip -name clk_wiz -vendor xilinx.com -library ip -module_name clk_wiz_0
+set_property -dict [list CONFIG.PRIM_IN_FREQ {100.000} \
+    CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {200.000} \
+    CONFIG.USE_RESET {false} CONFIG.USE_LOCKED {false}] [get_ips clk_wiz_0]
+generate_target all [get_ips clk_wiz_0]
+create_ip_run [get_ips clk_wiz_0]
+launch_runs clk_wiz_0_synth_1 -jobs 6
+wait_on_run clk_wiz_0_synth_1
+
 set_property top top_fpga_wrapper [current_fileset]
 update_compile_order -fileset sources_1
 
