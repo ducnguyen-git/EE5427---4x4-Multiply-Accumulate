@@ -28,6 +28,10 @@ transcript
 *.vstf
 modelsim.ini
 
+# Vivado artifacts
+vivado_project/*
+!vivado_project/mac_4x4_nexys_a7.xpr
+
 # Python Artifacts
 __pycache__/
 *.pyc
