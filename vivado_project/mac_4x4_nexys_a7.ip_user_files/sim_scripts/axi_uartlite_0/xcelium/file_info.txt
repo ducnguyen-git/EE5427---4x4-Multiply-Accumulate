@@ -1,6 +1,0 @@
-xpm_cdc.sv,systemverilog,xpm,../../../../../../../../Xilinx/2026.1/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv,incdir="../../../../../../../../Xilinx/2026.1/data/rsb/busdef"
-xpm_VCOMP.vhd,vhdl,xpm,../../../../../../../../Xilinx/2026.1/data/ip/xpm/xpm_VCOMP.vhd,incdir="../../../../../../../../Xilinx/2026.1/data/rsb/busdef"
-axi_lite_ipif_v3_1_rfs.vhd,vhdl,axi_lite_ipif_v3_1_0,../../../ipstatic/hdl/axi_lite_ipif_v3_1_rfs.vhd,incdir="../../../../../../../../Xilinx/2026.1/data/rsb/busdef"
-axi_uartlite_v2_0_rfs.vhd,vhdl,axi_uartlite_v2_0_40,../../../ipstatic/hdl/axi_uartlite_v2_0_rfs.vhd,incdir="../../../../../../../../Xilinx/2026.1/data/rsb/busdef"
-axi_uartlite_0.vhd,vhdl,xil_defaultlib,../../../../mac_4x4_nexys_a7.gen/sources_1/ip/axi_uartlite_0/sim/axi_uartlite_0.vhd,incdir="../../../../../../../../Xilinx/2026.1/data/rsb/busdef"
-glbl.v,Verilog,xil_defaultlib,glbl.v

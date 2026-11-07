@@ -67,6 +67,7 @@ set_property webtalk.parent_dir /home/thomasle/Personal/projects/4x4-mac/vivado_
 set_property parent.project_path /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.xpr [current_project]
 set_property default_lib xil_defaultlib [current_project]
 set_property target_language Verilog [current_project]
+set_property ip_output_repo /home/thomasle/Personal/projects/4x4-mac/vivado_project/mac_4x4_nexys_a7.cache/ip [current_project]
 set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }

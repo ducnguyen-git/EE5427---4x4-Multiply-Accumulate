@@ -1,0 +1,13 @@
+{
+  "index": [
+    {
+      "dirs": [
+        "DUT",
+        "DUT_4MAC",
+        "fpga",
+        "rtl",
+        "tb"
+      ]
+    }
+  ]
+}
