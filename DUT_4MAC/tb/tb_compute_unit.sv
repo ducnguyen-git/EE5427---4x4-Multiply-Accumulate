@@ -77,6 +77,8 @@ module tb_compute_unit;
         rst_n = 0;
         #100;
         assert(!err && !finish && tx) else $fatal(1, "Reset failed");
+        assert(dut.dut_i.matrix_C[15] == 10'(expected)) else
+            $fatal(1, "Reset changed the retained matrix result");
         $display("PASS: UART load, compute, 16 results, validation and reset");
         $finish;
     end

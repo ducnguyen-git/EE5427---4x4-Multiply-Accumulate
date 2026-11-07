@@ -5,7 +5,15 @@ module uart_rx
   parameter int unsigned STOP_WIDTH = uart_pkg::STOP_WIDTH
 )
 (
-  uart_if.rx_mp _if
+  input logic rx_clk,
+  input logic rst_n,
+  input logic rx_en,
+  input logic rx_ack,
+  input logic rx,
+  output logic rx_err,
+  output logic rx_finish,
+  output logic rx_overrun,
+  output logic [7:0] rx_data
 );
   import uart_pkg::*;
 
@@ -67,22 +75,22 @@ module uart_rx
     zeros_cnt = zeros_cnt_fn(vote_window);
   end
 
-  always_ff @(posedge _if.rx_clk or negedge _if.rst_n) begin
-    if (!_if.rst_n) begin
+  always_ff @(posedge rx_clk or negedge rst_n) begin
+    if (!rst_n) begin
       rx_meta <= 1'b1;
       rx_sync <= 1'b1;
       ack_meta <= 1'b0;
       ack_sync <= 1'b0;
     end else begin
-      rx_meta <= _if.rx;
+      rx_meta <= rx;
       rx_sync <= rx_meta;
-      ack_meta <= _if.rx_ack;
+      ack_meta <= rx_ack;
       ack_sync <= ack_meta;
     end
   end
 
-  always_ff @(posedge _if.rx_clk or negedge _if.rst_n) begin
-    if (!_if.rst_n)
+  always_ff @(posedge rx_clk or negedge rst_n) begin
+    if (!rst_n)
       rx_prev <= 1'b1;
     else
       rx_prev <= rx_sync;
@@ -97,8 +105,8 @@ module uart_rx
       (inferred_bit != STOP_SIG || bit_recv_cnt == STOP_WIDTH - 1)));
 
 
-  always_ff @(posedge _if.rx_clk or negedge _if.rst_n) begin
-    if (!_if.rst_n) begin
+  always_ff @(posedge rx_clk or negedge rst_n) begin
+    if (!rst_n) begin
       sampling_active <= '0;
       inferred_bit <= '1;
       bit_valid <= 1'b0;
@@ -109,7 +117,7 @@ module uart_rx
       oversampling_data <= '0;
     end else begin
       bit_valid <= 1'b0;
-      if (!_if.rx_en) begin
+      if (!rx_en) begin
         sampling_active <= '0;
         pending_start <= 1'b0;
         pending_sample_cnt <= '0;
@@ -169,29 +177,29 @@ module uart_rx
     end
   end
 
-  always_ff @(posedge _if.rx_clk or negedge _if.rst_n) begin
-    if (!_if.rst_n) begin
+  always_ff @(posedge rx_clk or negedge rst_n) begin
+    if (!rst_n) begin
       curr_state <= RX_IDLE;
       bit_recv_cnt <= '0;
       data <= '0;
-      _if.rx_data <= '0;
-      _if.rx_err <= '0;
-      _if.rx_finish <= '0;
-      _if.rx_overrun <= 1'b0;
+      rx_data <= '0;
+      rx_err <= '0;
+      rx_finish <= '0;
+      rx_overrun <= 1'b0;
       frame_err <= 1'b0;
-    end else if (!_if.rx_en) begin
+    end else if (!rx_en) begin
       curr_state <= RX_IDLE;
       bit_recv_cnt <= '0;
       data <= '0;
       frame_err <= 1'b0;
-      _if.rx_data <= '0;
-      _if.rx_err <= 1'b0;
-      _if.rx_finish <= 1'b0;
-      _if.rx_overrun <= 1'b0;
+      rx_data <= '0;
+      rx_err <= 1'b0;
+      rx_finish <= 1'b0;
+      rx_overrun <= 1'b0;
     end else begin
       // Four-phase mailbox: hold data/status until acknowledged; do not
       // reuse the mailbox until the synchronized acknowledgment returns low.
-      if (ack_sync) _if.rx_finish <= 1'b0;
+      if (ack_sync) rx_finish <= 1'b0;
 
       if (bit_valid)
       case (curr_state)
@@ -221,13 +229,13 @@ module uart_rx
           if (frame_end) begin
             curr_state <= RX_IDLE;
             bit_recv_cnt <= '0;
-            if (!_if.rx_finish && !ack_sync) begin
-              _if.rx_data <= data;
-              _if.rx_err <= frame_err || inferred_bit != STOP_SIG;
-              _if.rx_finish <= 1'b1;
+            if (!rx_finish && !ack_sync) begin
+              rx_data <= data;
+              rx_err <= frame_err || inferred_bit != STOP_SIG;
+              rx_finish <= 1'b1;
             end else begin
               // Preserve the older result and report a dropped new frame.
-              _if.rx_overrun <= 1'b1;
+              rx_overrun <= 1'b1;
             end
           end else begin
             bit_recv_cnt <= bit_recv_cnt + 1'b1;

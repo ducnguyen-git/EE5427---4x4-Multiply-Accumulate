@@ -32,8 +32,6 @@ module DUT_4MAC (
 
     logic all_Done;
     logic busy;
-    integer index;
-
 
 	//==================================================
     // Load matrix A and matrix B
@@ -244,6 +242,18 @@ module DUT_4MAC (
     endgenerate
 
 
+    // Results retain their values across reset and are valid only after DONE.
+    generate
+        for (genvar r = 0; r < 4; r++) begin : GEN_RESULT_ROW
+            for (genvar c = 0; c < 4; c++) begin : GEN_RESULT_COL
+                always_ff @(posedge clk) begin
+                    if (rst_n && busy && all_Done && column_counter == c)
+                        matrix_C[4*r + c] <= mac_result[r];
+                end
+            end
+        end
+    endgenerate
+
     //==================================================
     // Detect when all four MAC modules are done
     //==================================================
@@ -266,22 +276,6 @@ module DUT_4MAC (
                 mac_start <= 1'b1;
             end
             else if (busy && all_Done) begin
-                // Result from MAC0: row 0
-                matrix_C[column_counter]
-                    <= mac_result[0];
-
-                // Result from MAC1: row 1
-                matrix_C[4 + column_counter]
-                    <= mac_result[1];
-
-                // Result from MAC2: row 2
-                matrix_C[8 + column_counter]
-                    <= mac_result[2];
-
-                // Result from MAC3: row 3
-                matrix_C[12 + column_counter]
-                    <= mac_result[3];
-
                 //======================================
                 // Current column is the last column
                 //======================================

@@ -30,7 +30,10 @@ module uart_loop
 
   uart_clk uart_clk
   (
-    ._if(_if)
+    .sys_clk(_if.sys_clk),
+    .rst_n(_if.rst_n),
+    .tx_clk(_if.tx_clk),
+    .rx_clk(_if.rx_clk)
   );
 
   uart_rx
@@ -39,7 +42,15 @@ module uart_loop
     .PARITY_BIT(PARITY_BIT /* default uart_pkg::PARITY_BIT */),
     .STOP_WIDTH(STOP_WIDTH /* default uart_pkg::STOP_WIDTH */)
   ) uart_rx (
-    ._if(_if)
+    .rx_clk(_if.rx_clk),
+    .rst_n(_if.rst_n),
+    .rx_en(_if.rx_en),
+    .rx_ack(_if.rx_ack),
+    .rx(_if.rx),
+    .rx_err(_if.rx_err),
+    .rx_finish(_if.rx_finish),
+    .rx_overrun(_if.rx_overrun),
+    .rx_data(_if.rx_data)
   );
 
   uart_tx
@@ -48,7 +59,12 @@ module uart_loop
     .PARITY_BIT(PARITY_BIT /* default uart_pkg::PARITY_BIT */),
     .STOP_WIDTH(STOP_WIDTH /* default uart_pkg::STOP_WIDTH */)
   ) uart_tx (
-    ._if(_if)
+    .tx_clk(_if.tx_clk),
+    .rst_n(_if.rst_n),
+    .tx_start(_if.tx_start),
+    .tx_data(_if.tx_data),
+    .tx_finish(_if.tx_finish),
+    .tx(_if.tx)
   );
 
   // RX holds its payload until this clock domain acknowledges it. The

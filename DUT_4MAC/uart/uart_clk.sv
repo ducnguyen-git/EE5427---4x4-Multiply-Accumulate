@@ -5,7 +5,10 @@ module uart_clk
   parameter int unsigned OVERSAMPLING_RATE = uart_pkg::OVERSAMPLING_RATE
 )
 (
-  uart_if.clk_mp _if
+  input logic sys_clk,
+  input logic rst_n,
+  output logic tx_clk,
+  output logic rx_clk
 );
   localparam int unsigned BIT_PERIOD =
     XTAL_FREQ / (BAUD_RATE > 0 ? BAUD_RATE : 1);
@@ -25,26 +28,26 @@ module uart_clk
       $fatal(1, "UART clock dividers must each be at least two system cycles");
   end
 
-  always_ff @(posedge _if.sys_clk or negedge _if.rst_n) begin
-    if (!_if.rst_n) begin
+  always_ff @(posedge sys_clk or negedge rst_n) begin
+    if (!rst_n) begin
       tx_counter <= '0;
       rx_counter <= '0;
-      _if.tx_clk <= '0;
-      _if.rx_clk <= '0;
+      tx_clk <= '0;
+      rx_clk <= '0;
     end else begin
       if (tx_counter < BIT_PERIOD - 1) begin
         tx_counter <= tx_counter + 1'b1;
-        _if.tx_clk <= '0;
+        tx_clk <= '0;
       end else begin
         tx_counter <= '0;
-        _if.tx_clk <= '1;
+        tx_clk <= '1;
       end
       if (rx_counter < OVERSAMPLING_BIT_PERIOD - 1) begin
         rx_counter <= rx_counter + 1'b1;
-        _if.rx_clk <= '0;
+        rx_clk <= '0;
       end else begin
         rx_counter <= '0;
-        _if.rx_clk <= '1;
+        rx_clk <= '1;
       end
     end
   end

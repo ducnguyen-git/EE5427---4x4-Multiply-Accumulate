@@ -27,6 +27,18 @@ inside the UART and requires reset to clear.
 
 ## Vivado
 
+For standalone synthesis on the Nexys A7-100T (`xc7a100tcsg324-1`), run
+from `DUT_4MAC`:
+
+```sh
+vivado -mode batch -source vivado/compute_unit.tcl
+```
+
+With no project open, the script creates an in-memory project, compiles and
+synthesizes `compute_unit`, and writes `build/compute_unit/compute_unit_synth.dcp`
+and `utilization.rpt`. This checks synthesis only; pin/clock constraints and
+implementation are still required to produce a board-ready bitstream.
+
 Create/open a project for your board's FPGA, then in its Tcl console run:
 
 ```tcl
@@ -35,7 +47,7 @@ source /path/to/4x4-mac/DUT_4MAC/vivado/compute_unit.tcl
 set_property generic {XTAL_FREQ=100000000 BAUD_RATE=9600} [current_fileset]
 ```
 
-This adds the UART package/interface/modules and the RTL, and selects
+When a project is already open, the script only adds the UART package/interface/modules and the RTL, and selects
 `compute_unit` as synthesis top. `uart_loop` and the older FPGA wrappers are
 not needed. Add a board-specific XDC for all six ports and the input clock.
 The UART implementation uses divided pulse signals as clocks; constrain both

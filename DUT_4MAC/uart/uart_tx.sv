@@ -5,7 +5,12 @@ module uart_tx
   parameter int unsigned STOP_WIDTH = uart_pkg::STOP_WIDTH
 )
 (
-  uart_if.tx_mp _if
+  input logic tx_clk,
+  input logic rst_n,
+  input logic tx_start,
+  input logic [7:0] tx_data,
+  output logic tx_finish,
+  output logic tx
 );
   import uart_pkg::*;
 
@@ -22,56 +27,56 @@ module uart_tx
   // Only transmitted payload bits participate in parity. The interface can
   // contain unrelated high bits when DATA_WIDTH is less than eight.
   assign parity_result = (PARITY_BIT == ODD)
-    ? ~^_if.tx_data[DATA_WIDTH-1:0] : ^_if.tx_data[DATA_WIDTH-1:0];
+    ? ~^tx_data[DATA_WIDTH-1:0] : ^tx_data[DATA_WIDTH-1:0];
 
   always_comb begin
-    if (!_if.rst_n) data_frame = '0;
+    if (!rst_n) data_frame = '0;
 
     if (PARITY_BIT != NONE)
       data_frame =
       16'({
         {STOP_WIDTH{STOP_SIG}},
         parity_result,
-        _if.tx_data[DATA_WIDTH-1:0],
+        tx_data[DATA_WIDTH-1:0],
         START_SIG
       });
     else
       data_frame = 
       16'({
         {STOP_WIDTH{STOP_SIG}},
-        _if.tx_data[DATA_WIDTH-1:0],
+        tx_data[DATA_WIDTH-1:0],
         START_SIG
       });
   end
 
-  always_ff @(posedge _if.tx_clk or negedge _if.rst_n) begin
-    if (!_if.rst_n) begin
+  always_ff @(posedge tx_clk or negedge rst_n) begin
+    if (!rst_n) begin
       send_frame <= '0;
       latched <= '0;
       bit_sent_cnt <= '0;
-      _if.tx <= IDLE_SIG;
-      _if.tx_finish <= '0;
+      tx <= IDLE_SIG;
+      tx_finish <= '0;
       curr_state <= TX_IDLE;
     end
     else
       case (curr_state)
         TX_IDLE:
-          if (_if.tx_start) begin
+          if (tx_start) begin
             curr_state <= TX_SEND;
-            _if.tx_finish <='0;
+            tx_finish <='0;
           end
         TX_SEND: begin
           if (!latched) begin
             send_frame <= data_frame;
             latched <= '1;
           end else if (bit_sent_cnt < DATA_FRAME_LEN) begin
-            _if.tx <= send_frame[0];
+            tx <= send_frame[0];
             bit_sent_cnt <= bit_sent_cnt + 1'b1;
             send_frame <= send_frame >> 1;
           end else begin
             latched <= '0;
             bit_sent_cnt <= '0;
-            _if.tx_finish <= '1;
+            tx_finish <= '1;
             curr_state <= TX_IDLE;
           end
         end

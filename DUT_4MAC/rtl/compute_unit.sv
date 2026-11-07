@@ -30,10 +30,30 @@ module compute_unit #(
     assign uart_if_i.rx_en = 1'b1;
 
     uart_clk #(.XTAL_FREQ(XTAL_FREQ), .BAUD_RATE(BAUD_RATE)) uart_clk_i (
-        ._if(uart_if_i.clk_mp)
+        .sys_clk(uart_if_i.sys_clk),
+        .rst_n(uart_if_i.rst_n),
+        .tx_clk(uart_if_i.tx_clk),
+        .rx_clk(uart_if_i.rx_clk)
     );
-    uart_tx uart_tx_i (._if(uart_if_i.tx_mp));
-    uart_rx uart_rx_i (._if(uart_if_i.rx_mp));
+    uart_tx uart_tx_i (
+        .tx_clk(uart_if_i.tx_clk),
+        .rst_n(uart_if_i.rst_n),
+        .tx_start(uart_if_i.tx_start),
+        .tx_data(uart_if_i.tx_data),
+        .tx_finish(uart_if_i.tx_finish),
+        .tx(uart_if_i.tx)
+    );
+    uart_rx uart_rx_i (
+        .rx_clk(uart_if_i.rx_clk),
+        .rst_n(uart_if_i.rst_n),
+        .rx_en(uart_if_i.rx_en),
+        .rx_ack(uart_if_i.rx_ack),
+        .rx(uart_if_i.rx),
+        .rx_err(uart_if_i.rx_err),
+        .rx_finish(uart_if_i.rx_finish),
+        .rx_overrun(uart_if_i.rx_overrun),
+        .rx_data(uart_if_i.rx_data)
+    );
 
     // Keep the command controller, transmitter and MAC in one clock domain.
     DUT_4MAC dut_i (
