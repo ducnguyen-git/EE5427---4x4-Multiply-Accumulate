@@ -38,3 +38,7 @@ Thumbs.db
 *.swp
 *~
 .slang/
+
+# Standalone compute-unit synthesis
+/DUT_4MAC/build/
+/DUT_4MAC/.Xil/
