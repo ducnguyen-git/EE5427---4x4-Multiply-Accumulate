@@ -115,5 +115,4 @@ module top_fpga_wrapper (
 
     // Show lowest nibble of C on HEX0
     assign hex0 = hex_decoder(mac_result[3:0]);
-
 endmodule
