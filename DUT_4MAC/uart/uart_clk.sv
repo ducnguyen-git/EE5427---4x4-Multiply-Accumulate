@@ -26,6 +26,11 @@ module uart_clk
     // These outputs are one-cycle clock pulses, so each needs a low cycle.
     if (BIT_PERIOD < 2 || OVERSAMPLING_BIT_PERIOD < 2)
       $fatal(1, "UART clock dividers must each be at least two system cycles");
+    // Limit divider error to 2% so rounding does not consume the UART timing margin.
+    if (64'(BAUD_RATE) * BIT_PERIOD * 102 < 64'(XTAL_FREQ) * 100 ||
+        64'(BAUD_RATE) * OVERSAMPLING_BIT_PERIOD * OVERSAMPLING_RATE * 102
+          < 64'(XTAL_FREQ) * 100)
+      $fatal(1, "UART TX/RX baud error exceeds 2%%; choose a lower baud or another clock frequency");
   end
 
   always_ff @(posedge sys_clk or negedge rst_n) begin
