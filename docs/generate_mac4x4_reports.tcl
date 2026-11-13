@@ -17,4 +17,7 @@ report_utilization -file [file join $out mac4x4_utilization.rpt]
 report_utilization -hierarchical -file [file join $out mac4x4_utilization_hierarchical.rpt]
 report_route_status -file [file join $out mac4x4_route_status.rpt]
 write_checkpoint -force [file join $scratch mac4x4_routed.dcp]
+set_switching_activity -toggle_rate 12.5 -static_probability 0.5 [get_ports -filter {DIRECTION == IN && NAME != clk && NAME != rst_n}]
+set_switching_activity -toggle_rate 0 -static_probability 1 [get_ports rst_n]
+report_power -file [file join $out mac4x4_power.rpt]
 exit

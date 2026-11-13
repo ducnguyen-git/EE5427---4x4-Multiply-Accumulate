@@ -54,6 +54,8 @@ routing errors; the 293 interface ports are listed as implicitly routed.
 - [Post-route utilization](mac4x4_utilization.rpt)
 - [Hierarchical utilization](mac4x4_utilization_hierarchical.rpt)
 - [Route status](mac4x4_route_status.rpt)
+- [Power report](mac4x4_power.rpt) and [analysis assumptions](mac4x4_power_analysis.md)
+- [Baseline versus improved comparison](baseline_vs_improved_comparison.md)
 - [Vivado generation script](generate_mac4x4_reports.tcl)
 
 From the repository root, with Vivado on PATH:

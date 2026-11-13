@@ -1,0 +1,46 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2026.1 (win64) Build 6511674 Tue Jun 16 11:02:23 MDT 2026
+| Date         : Fri Nov 13 23:20:18 2026
+| Host         : NightlyV2 running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -file D:/projects/4x4-mac/docs/baseline_utilization_hierarchical.rpt
+| Design       : DUT
+| Device       : xc7a100tcsg324-1
+| Speed File   : -1
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++-----------------------------+--------+------------+------------+---------+------+------+--------+--------+------------+
+|           Instance          | Module | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++-----------------------------+--------+------------+------------+---------+------+------+--------+--------+------------+
+| DUT                         |  (top) |       1060 |       1060 |       0 |    0 | 1169 |      0 |      0 |          0 |
+|   (DUT)                     |  (top) |         40 |         40 |       0 |    0 |  289 |      0 |      0 |          0 |
+|   GEN_ROW[0].GEN_MAC[0].dut |    MAC |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[0].GEN_MAC[1].dut |  MAC_0 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[0].GEN_MAC[2].dut |  MAC_1 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[0].GEN_MAC[3].dut |  MAC_2 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[1].GEN_MAC[0].dut |  MAC_3 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[1].GEN_MAC[1].dut |  MAC_4 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[1].GEN_MAC[2].dut |  MAC_5 |         65 |         65 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[1].GEN_MAC[3].dut |  MAC_6 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[2].GEN_MAC[0].dut |  MAC_7 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[2].GEN_MAC[1].dut |  MAC_8 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[2].GEN_MAC[2].dut |  MAC_9 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[2].GEN_MAC[3].dut | MAC_10 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[3].GEN_MAC[0].dut | MAC_11 |         66 |         66 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[3].GEN_MAC[1].dut | MAC_12 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[3].GEN_MAC[2].dut | MAC_13 |         64 |         64 |       0 |    0 |   55 |      0 |      0 |          0 |
+|   GEN_ROW[3].GEN_MAC[3].dut | MAC_14 |         65 |         65 |       0 |    0 |   55 |      0 |      0 |          0 |
++-----------------------------+--------+------------+------------+---------+------+------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+

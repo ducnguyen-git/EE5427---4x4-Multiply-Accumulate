@@ -1,0 +1,6 @@
+Baseline revision: f08ffacd6b11e9832a40903bf0e6493a38d33748
+Improved timing/utilization/power checkpoint: build/mac4x4_reports/mac4x4_routed.dcp
+Improved checkpoint must be regenerated with docs/generate_mac4x4_reports.tcl after RTL changes.
+Part: xc7a100tcsg324-1; OOC clock: 100 MHz
+Power: vectorless; non-clock inputs 12.5% toggle, 0.5 static probability; reset inactive.
+No SAIF/VCD workload annotation; no board clock tree or I/O buffers.
