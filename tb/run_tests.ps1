@@ -9,7 +9,7 @@ try {
     $sources += @(Get-ChildItem rtl -Filter *.sv | ForEach-Object { $_.FullName })
     $sources += @(Get-ChildItem rtl/uart -Filter *.sv |
         Where-Object { $_.Name -ne 'uart_pkg.sv' } | ForEach-Object { $_.FullName })
-    foreach ($top in @('tb_ADDER', 'tb_MULTIPLIER', 'tb_VEDIC4_PIPELINED', 'tb_MAC', 'tb_MAC4x4', 'tb_MAC4x4_uart')) {
+    foreach ($top in @('tb_ADDER', 'tb_MULTIPLIER', 'tb_VEDIC4_PIPELINED', 'tb_MAC', 'tb_MAC4x4', 'tb_MAC4x4_uart', 'tb_fpga_reset')) {
         $executable = Join-Path $simDirectory "$top.vvp"
         & iverilog -g2012 -s $top -o $executable @sources "tb/$top.sv"
         if ($LASTEXITCODE -ne 0) { throw "Compilation failed: $top" }
@@ -19,4 +19,4 @@ try {
 } finally {
     Pop-Location
 }
-Write-Host "All six testbenches passed. Simulation files: $simDirectory"
+Write-Host "All seven testbenches passed. Simulation files: $simDirectory"

@@ -1,20 +1,16 @@
 module Multiple_multiplier #(
     parameter WIDTH = 4
 )(
-    input  logic [WIDTH-1:0]   A,
-    input  logic [WIDTH-1:0]   B,
-    output logic [2*WIDTH-1:0] C
+    input logic [WIDTH-1:0] A, B,
+    output wire [2*WIDTH-1:0] C
 );
-    // Recursive Urdhva Tiryagbhyam (vertical and crosswise) multiplication.
-    // Split A/B into high and low halves:
-    // A*B = low*low + ((high*low + low*high) << HALF)
-    //                    + (high*high << (2*HALF)).
+    // Urdhva Tiryagbhyam: vertical products and crosswise quadrant sums.
+    // Explicit generated levels avoid a self-instantiating module hierarchy.
     generate
         if (WIDTH == 1) begin : GEN_BIT
             assign C = {1'b0, A[0] & B[0]};
         end else if (WIDTH == 2) begin : GEN_2X2
-            // Direct vertical/crosswise base case: two half-adders.
-            logic cross_carry;
+            wire cross_carry;
             assign C[0] = A[0] & B[0];
             Half_Adder cross_adder (
                 .a(A[1] & B[0]), .b(A[0] & B[1]),
@@ -24,39 +20,38 @@ module Multiple_multiplier #(
                 .a(A[1] & B[1]), .b(cross_carry), .s(C[2]), .cout(C[3])
             );
         end else begin : GEN_VEDIC
-            localparam HALF = (WIDTH + 1) / 2;
-            localparam PAD_WIDTH = 2 * HALF;
-            logic [PAD_WIDTH-1:0] padded_a, padded_b;
-            logic [2*HALF-1:0] low_low, high_low, low_high, high_high;
-            logic [2*HALF:0] cross_sum;
-            logic [4*HALF-1:0] cross_shifted, product;
-
-            // Zero extension also supports odd operand widths.
-            assign padded_a = {{(PAD_WIDTH-WIDTH){1'b0}}, A};
-            assign padded_b = {{(PAD_WIDTH-WIDTH){1'b0}}, B};
-
-            Multiple_multiplier #(.WIDTH(HALF)) mul_ll (
-                .A(padded_a[HALF-1:0]), .B(padded_b[HALF-1:0]), .C(low_low)
-            );
-            Multiple_multiplier #(.WIDTH(HALF)) mul_hl (
-                .A(padded_a[PAD_WIDTH-1:HALF]), .B(padded_b[HALF-1:0]), .C(high_low)
-            );
-            Multiple_multiplier #(.WIDTH(HALF)) mul_lh (
-                .A(padded_a[HALF-1:0]), .B(padded_b[PAD_WIDTH-1:HALF]), .C(low_high)
-            );
-            Multiple_multiplier #(.WIDTH(HALF)) mul_hh (
-                .A(padded_a[PAD_WIDTH-1:HALF]), .B(padded_b[PAD_WIDTH-1:HALF]), .C(high_high)
-            );
-
-            // Preserve the extra carry bit in the crosswise sum.
-            Multiple_adder #(.WIDTH(2*HALF+1)) add_cross (
-                .A({1'b0, high_low}), .B({1'b0, low_high}), .C(cross_sum)
-            );
-            assign cross_shifted = {{(HALF-1){1'b0}}, cross_sum, {HALF{1'b0}}};
-            Multiple_adder #(.WIDTH(4*HALF)) add_product (
-                .A({high_high, low_low}), .B(cross_shifted), .C(product)
-            );
-            assign C = product[2*WIDTH-1:0];
+            localparam LEVELS = $clog2(WIDTH);
+            localparam PAD_WIDTH = 2**LEVELS;
+            wire [PAD_WIDTH-1:0] padded_a = PAD_WIDTH'(A);
+            wire [PAD_WIDTH-1:0] padded_b = PAD_WIDTH'(B);
+            for (genvar level = 0; level <= LEVELS; level++) begin : GEN_LEVEL
+                localparam CHUNK = 2**level;
+                localparam COUNT = PAD_WIDTH / CHUNK;
+                wire [2*CHUNK-1:0] product [0:COUNT-1][0:COUNT-1];
+                for (genvar row = 0; row < COUNT; row++) begin : GEN_ROW
+                    for (genvar col = 0; col < COUNT; col++) begin : GEN_COL
+                        if (level == 0) begin : GEN_LEAF
+                            assign product[row][col] = {1'b0, padded_a[row] & padded_b[col]};
+                        end else begin : GEN_COMBINE
+                            localparam HALF = CHUNK / 2;
+                            wire [CHUNK:0] cross_sum;
+                            wire [2*CHUNK-1:0] diagonal, cross_shifted;
+                            Multiple_adder #(.WIDTH(CHUNK+1)) add_cross (
+                                .A({1'b0, GEN_LEVEL[level-1].product[2*row+1][2*col]}),
+                                .B({1'b0, GEN_LEVEL[level-1].product[2*row][2*col+1]}),
+                                .C(cross_sum)
+                            );
+                            assign diagonal = {GEN_LEVEL[level-1].product[2*row+1][2*col+1],
+                                               GEN_LEVEL[level-1].product[2*row][2*col]};
+                            assign cross_shifted = (2*CHUNK)'(cross_sum) << HALF;
+                            Multiple_adder #(.WIDTH(2*CHUNK)) add_product (
+                                .A(diagonal), .B(cross_shifted), .C(product[row][col])
+                            );
+                        end
+                    end
+                end
+            end
+            assign C = GEN_LEVEL[LEVELS].product[0][0][2*WIDTH-1:0];
         end
     endgenerate
 endmodule

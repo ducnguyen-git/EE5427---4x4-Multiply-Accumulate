@@ -27,7 +27,9 @@ All additions use reusable 4-bit CLA blocks. Block propagate/generate signals
 feed direct look-ahead equations for every block carry, removing carry ripple
 between blocks. Non-multiple-of-four widths are zero-padded internally.
 
-The generic combinational Vedic multiplier remains available through
+The generic combinational Vedic multiplier uses explicit generated levels,
+with no module instantiating itself, so Vivado hierarchy analysis is acyclic.
+It remains available through
 `Multiple_multiplier` and `MAC_MULTIPLIER`. The MAC datapath uses
 `VEDIC4_PIPELINED`, splitting crosswise and final product additions into separate
 clock stages. Its 2x2 base case uses two half-adders.
@@ -85,11 +87,54 @@ powershell -NoProfile -File tb/run_tests.ps1
 ```
 
 The runner compiles packages first and stores artifacts in a temporary directory.
-It runs six self-checking testbenches: exhaustive small adders and combinational
+It runs seven self-checking testbenches: exhaustive small adders and combinational
 multipliers, wider carry tests, exhaustive pipelined 4-bit multiplication,
 full-rate MAC and matrix streams, and end-to-end UART transactions. Tests include
 valid bubbles, maximum values, matrix ordering, reset with requests in flight,
 framing recovery, uninterrupted UART byte timing, and response snapshot stability.
+The board-level test also checks power-on reset and repeated UART requests.
+
+### Nexys A7-100T implementation
+
+The FPGA top is `top_fpga_wrapper`, with only three physical ports:
+`CLK100MHZ`, `UART_RXD`, and `UART_TXD`. Buttons, switches, LEDs, and seven-segment
+display ports are removed. Reset is generated internally for four clock cycles
+after configuration. There is no external reset input; reconfigure the FPGA to
+restart after a lost UART packet boundary. The host uses 9600 baud, 8N1, with
+hardware flow control disabled.
+
+`fpga/nexys_a7.xdc` assigns the clock and USB-UART pins, the 100 MHz clock,
+I/O standards, and configuration voltage. Its UART timing exceptions cover only
+the asynchronous input to the first RX synchronizer stage and the external TX
+output; internal register timing remains checked.
+
+Open `project_1.xpr` with `top_fpga_wrapper` selected as the synthesis top, or run:
+
+```powershell
+vivado -mode batch -source fpga/build_nexys_a7.tcl
+```
+
+To repair an existing GUI project that still selects `MAC4x4`, run this in its
+Tcl console from the repository root before rebuilding:
+
+```tcl
+source fpga/repair_project.tcl
+```
+
+To repair and rebuild the saved project, including resetting failed runs:
+
+```powershell
+vivado -mode batch -source fpga/rebuild_project.tcl
+```
+
+When switching between batch and an already open GUI, reopen the saved project
+before saving from the GUI so its older in-memory settings do not overwrite the
+repaired top and source list. The project build writes its bitstream under
+`project_1.runs/impl_1/`; the independent build below uses `build/nexys_a7/`.
+
+The reproducible build runs synthesis, placement, routing, timing checks, and
+bitstream generation. Outputs are `build/nexys_a7/top_fpga_wrapper.bit` and the
+adjacent timing, utilization, and DRC reports. No board programming is performed.
 
 ## 6. Source layout
 
@@ -101,6 +146,8 @@ framing recovery, uninterrupted UART byte timing, and response snapshot stabilit
 | `rtl/MAC.sv` | Four parallel products and registered adder tree |
 | `rtl/MAC4x4.sv` | Sixteen MACs and full matrix result bus |
 | `rtl/MAC4x4_uart.sv` | Matrix receive, compute control, and continuous response serializer |
+| `rtl/top_fpga_wrapper.sv` | UART-only board integration and power-on reset |
+| `fpga/` | Nexys A7 constraints and reproducible Vivado build |
 | `rtl/uart/` | UART package, RX, clock enables, and standalone byte TX |
 | `tb/` | Arithmetic, pipeline, matrix, and serial testbenches |
 | `docs/UART.md` | UART packet and transaction contract |
@@ -136,9 +183,8 @@ flowchart TD
 
 ## 8. Verification & Simulation Guide
 
-See section 5 and run `tb/run_tests.ps1`. The board wrapper referenced by
-`tb_fpga_reset.sv` is absent from this checkout, so that legacy test is not
-included in the RTL regression.
+See section 5 and run `tb/run_tests.ps1`. All seven tests, including the UART-only
+board startup and matrix-transaction test, are included in the RTL regression.
 
 ---
 
