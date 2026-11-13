@@ -2,8 +2,8 @@
   "index": [
     {
       "dirs": [
-        "DUT",
-        "DUT_4MAC",
+        "MAC4x4",
+        "MAC4x4_4MAC",
         "fpga",
         "rtl",
         "tb"

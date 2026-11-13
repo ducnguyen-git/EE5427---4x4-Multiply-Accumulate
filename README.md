@@ -1,126 +1,111 @@
-# EE5427: 4-element 4-bit Pipelined Multiply-Accumulate (MAC) Unit
+# EE5427: Pipelined 4x4 Matrix Multiply
 
-[![Language](https://img.shields.io/badge/Language-SystemVerilog-blue.svg)](https://en.wikipedia.org/wiki/SystemVerilog)
-[![EDA](https://img.shields.io/badge/EDA-Intel%20Quartus%20Prime-0071C5.svg)](https://www.intel.com/content/www/us/en/software/programmable/quartus-prime/overview.html)
-[![Simulator](https://img.shields.io/badge/Simulator-Questa%20Intel%20FPGA-green.svg)](https://www.intel.com)
-[![Target](https://img.shields.io/badge/Target%20FPGA-Intel%20MAX%2010%20%7C%20Cyclone%20IV-orange.svg)](https://www.intel.com/content/www/us/en/products/details/fpga/max-10.html)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
+This design multiplies two row-major 4x4 matrices of unsigned 4-bit elements.
+Sixteen parallel MAC units compute all output elements. Each MAC computes a
+four-element dot product with four parallel Vedic multipliers and a registered
+balanced adder tree. The maximum result is 4 * 15 * 15 = 900, requiring 10 bits.
 
----
+## 1. Datapath
 
-## 1. Project Overview & Motivation
+Each MAC has five registered stages and accepts a new `START` every clock:
 
-In high-performance digital computing—specifically across **Digital Signal Processing (DSP)**, **Deep Learning inference engines (Systolic Arrays, TPU cores)**, and **Matrix-Vector Multiplications (MVM)**—the **Multiply-Accumulate (MAC)** unit is the core arithmetic workhorse.
+| Sampling edge | Stage | Operation |
+| --- | --- | --- |
+| N | Vedic quadrants | Register four 2x2 quadrant products for each of four element pairs |
+| N+1 | Crosswise sums | Register crosswise sums and aligned diagonal products |
+| N+2 | Products | Register all four completed 4x4 products |
+| N+3 | Pair sums | Register two 9-bit sums in parallel |
+| N+4 | Result | Register the 10-bit dot product and assert `DONE` |
 
-This repository hosts the full RTL design, verification, and Intel FPGA implementation for a **4-element 4-bit pipelined Multiply-Accumulate unit** developed for **EE5427**. Given two 16-bit input vectors $A$ and $B$, each packed with four unsigned 4-bit elements:
+`START` is an input-valid strobe. Consecutive high cycles request independent
+operations. `DONE` is the corresponding output-valid signal and may remain high
+for consecutive results. Bubbles propagate through the pipeline; C holds its
+last result when DONE is low. Reset clears outputs and flushes in-flight work.
+There is no sequential accumulation feedback or busy counter in the MAC.
 
-$$\mathbf{A} = \{A_3, A_2, A_1, A_0\}, \quad \mathbf{B} = \{B_3, B_2, B_1, B_0\}$$
+All additions use reusable 4-bit CLA blocks. Block propagate/generate signals
+feed direct look-ahead equations for every block carry, removing carry ripple
+between blocks. Non-multiple-of-four widths are zero-padded internally.
 
-The MAC unit sequentially processes the four element pairs and computes their scalar dot-product:
+The generic combinational Vedic multiplier remains available through
+`Multiple_multiplier` and `MAC_MULTIPLIER`. The MAC datapath uses
+`VEDIC4_PIPELINED`, splitting crosswise and final product additions into separate
+clock stages. Its 2x2 base case uses two half-adders.
 
-$$C = \sum_{i=0}^{3} A_i \times B_i = A_0 \cdot B_0 + A_1 \cdot B_1 + A_2 \cdot B_2 + A_3 \cdot B_3$$
+## 2. Matrix interface
 
----
+| Signal | Direction | Meaning |
+| --- | --- | --- |
+| `clk`, `rst_n` | Input | Rising-edge clock, asynchronous active-low reset |
+| `A[63:0]`, `B[63:0]` | Input | Sixteen row-major 4-bit elements, first element at [63:60] |
+| `LOAD` | Input | Capture both input matrices |
+| `START` | Input | Submit the currently loaded matrices to all MACs |
+| `C[159:0]` | Output | All sixteen 10-bit results, row-major, first element at [159:150] |
+| `DONE` | Output | All matrix results are valid together |
 
-## 2. Microarchitecture & Block Diagram
+`SELECT` has been removed. Element i is `C[159-10*i -: 10]`. The output bus
+updates atomically on edge N+4 for a START accepted on edge N. There is no
+additional output-copy cycle or 16-cycle element readout.
 
-The datapath decouples the multiplication and accumulation stages using an intermediate pipeline register to maximize operating frequency ($F_{max}$) and prevent long combinational paths.
+LOAD and START are independent. If both are high on the same edge, START
+submits the previously loaded matrices while LOAD captures the next pair.
+After an initial LOAD, this supports one new matrix operation per clock.
+To submit freshly loaded matrices, assert START on the following edge.
 
-![MAC Architecture Block Diagram](docs/mac_block_diagram.jpg)
+## 3. UART interface
 
-### Datapath Sub-modules
+Connect `MAC4x4_uart` to the matrix core's LOAD, START, A, B, C, and DONE ports.
+The transport receives 16 bytes (A then B), starts computation, snapshots the
+entire result matrix, and sends one continuous 32-byte 8N1 response. Each result
+uses two bytes, high byte first. No selection commands or extra idle gaps occur
+between response bytes. See [docs/UART.md](docs/UART.md) for the complete protocol.
 
-| Logic Block | Bitwidth / Type | Description & Functionality |
-| :--- | :--- | :--- |
-| **Input / Shift Registers** | 16-bit parallel load, 4-bit shift | Latches vectors $A[15:0]$ and $B[15:0]$ on `START = 1`. Sequentially shifts right by 4 bits each cycle to present pairs $(A_i, B_i)$ to the multiplier. |
-| **Multiplier** | 4-bit $\times$ 4-bit $\to$ 8-bit combinational | Computes unsigned product $A_i \times B_i$. Maximum single product is $15 \times 15 = 225$. |
-| **Product Pipeline Register** | 8-bit registered | Registers the multiplier output on the clock edge, establishing pipeline Stage 1 and breaking the critical path between multiplier and adder. |
-| **Accumulator / Adder** | 10-bit adder ($10\text{b} + 10\text{b} \to 10\text{b}$) | Sums the zero-extended 8-bit registered product $\{2'b00, P_i\}$ with the accumulated sum feedback. |
-| **Accumulator Pipeline Register** | 10-bit registered | Latches the accumulated sum, feeds back to Port B of the adder, and directly drives top-level output $C[9:0]$. Cleared to 0 at the start of calculation. |
-| **Control Logic & Counter** | 3-bit sequencer FSM | Tracks the 4-phase calculation cycles, generates shift enables, controls accumulator clear/feedback, and asserts `DONE`. |
-| **DONE Logic** | 1-bit status output | Asserted high when the accumulation of all 4 products has settled in the output register. |
-| **Reset Logic** | Active-low asynchronous | Restores all datapath registers and FSM states to a clean initialized state. |
+The serial transport handles one transaction at a time. UART wire bandwidth
+still limits host throughput: the response requires 320 bit periods. The matrix
+core itself supports one result matrix per clock after pipeline fill.
 
----
+## 4. Performance and implementation tradeoffs
 
-## 3. Mathematical Analysis & Bitwidth Proof
+- Core initiation interval: one clock, previously six.
+- START-to-DONE latency: four clock intervals, spanning five registered stages.
+- Multipliers: four per MAC, or 64 for the matrix core, previously 16 total.
+- More pipeline registers and arithmetic hardware are required for parallelism.
+- Achievable Fmax, area, and routing delay require synthesis and place-and-route
+  on the selected FPGA. Functional simulation does not establish timing closure.
 
-### 1. Element Range
-Each element $A_i, B_i$ is an unsigned 4-bit integer:
-$$0 \le A_i \le 2^4 - 1 = 15$$
-$$0 \le B_i \le 2^4 - 1 = 15$$
+The historical course specification and image in `docs/` describe the earlier
+sequential architecture; the tables above describe the current RTL.
 
-### 2. Multiplier Bitwidth
-The maximum product of a single element pair occurs when $A_i = 15$ and $B_i = 15$:
-$$P_{max} = 15 \times 15 = 225$$
-$$\lceil \log_2(225 + 1) \rceil = \lceil \log_2(226) \rceil = 8 \text{ bits}$$
-Thus, an **8-bit bus** $P[7:0]$ ($[0, 255]$) provides sufficient range with zero overflow.
+## 5. Verification
 
-### 3. Accumulator Bitwidth
-The maximum possible dot-product accumulated over 4 elements is:
-$$C_{max} = \sum_{i=0}^3 P_{max} = 4 \times 225 = 900$$
-To guarantee no overflow:
-$$\lceil \log_2(900 + 1) \rceil = \lceil 9.815 \rceil = 10 \text{ bits}$$
-With a **10-bit output bus** $C[9:0]$, the representable range is $[0, 1023]$, guaranteeing that **overflow is mathematically impossible** since $900 < 1023$.
+With Icarus Verilog and `vvp` on PATH, run from the repository root:
 
----
-
-## 4. Input / Output Interface Specifications
-
-| Signal Name | Direction | Bitwidth | Active Level | Description |
-| :--- | :---: | :---: | :---: | :--- |
-| `clk` | Input | 1 bit | Rising Edge | System operating clock (50 MHz / 100 MHz). |
-| `rst_n` | Input | 1 bit | Low (`0`) | Asynchronous active-low global reset. Returns registers and FSM to initial state. |
-| `START` | Input | 1 bit | High (`1`) | 1-clock-cycle pulse requesting the MAC unit to latch $A$ and $B$ and trigger a new computation. |
-| `A` | Input | 16 bit | - | Packed input vector $A = \{A_3, A_2, A_1, A_0\}$. Each chunk is unsigned 4-bit. |
-| `B` | Input | 16 bit | - | Packed input vector $B = \{B_3, B_2, B_1, B_0\}$. Each chunk is unsigned 4-bit. |
-| `C` | Output | 10 bit | - | Final dot-product result: $\sum_{i=0}^3 A_i \times B_i$. Valid when `DONE = 1`. |
-| `DONE` | Output | 1 bit | High (`1`) | Flags that the calculation is complete and output $C[9:0]$ holds a valid result. |
-
----
-
-## 5. Timing Diagram & Cycle-by-Cycle Execution Trace
-
-| Clock Cycle | FSM State / Counter | Shift Reg A Output | Shift Reg B Output | Multiplier Product $P$ | Pipeline Reg ($P_{reg}$) | Adder Output | Accumulator Reg ($C$) | `DONE` |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **0** | `START = 1` | $A_0$ | $B_0$ | $A_0 \cdot B_0$ | `0` | `0` | `0` | `0` |
-| **1** | `CALC (count=1)` | $A_1$ | $B_1$ | $A_1 \cdot B_1$ | $P_0$ | $P_0 + 0$ | `0` | `0` |
-| **2** | `CALC (count=2)` | $A_2$ | $B_2$ | $A_2 \cdot B_2$ | $P_1$ | $P_1 + P_0$ | $P_0$ | `0` |
-| **3** | `CALC (count=3)` | $A_3$ | $B_3$ | $A_3 \cdot B_3$ | $P_2$ | $P_2 + (P_0 + P_1)$ | $P_0 + P_1$ | `0` |
-| **4** | `CALC (count=4)` | - | - | - | $P_3$ | $P_3 + \sum_{0}^2 P_i$ | $\sum_{0}^2 P_i$ | `0` |
-| **5** | `FINISH (count=5)`| - | - | - | - | - | **$\sum_{i=0}^3 P_i$** | **`1`** |
-
-- **Latency:** 5 clock cycles from the assertion of `START` to the assertion of `DONE`.
-- **Throughput:** A new operation can be accepted every 6 clock cycles.
-
----
-
-## 6. Project Directory Structure
-
-```text
-EE5427---4x4-Multiply-Accumulate/
-├── README.md                      # Project documentation and specifications
-├── .gitignore                     # Git ignore rules for Intel Quartus Prime & EDA junk
-├── docs/                          # Design documents and schematics
-│   ├── mac_block_diagram.jpg      # Microarchitecture block diagram
-│   └── mac_block_specification.pdf# Course specification document
-├── rtl/                           # Synthesizable SystemVerilog source code
-│   ├── mac_top.sv                 # Top-level MAC module & sequencer
-│   ├── shift_reg.sv               # 16-bit to 4-bit serialization shift register
-│   ├── multiplier_4x4.sv          # 4-bit x 4-bit unsigned combinational multiplier
-│   └── adder_10bit.sv             # 10-bit accumulator adder
-├── tb/                            # Verification environment
-│   ├── mac_top_tb.sv              # Self-checking SystemVerilog testbench
-│   └── mac_ref_model.py           # Python golden model & vector generator
-└── fpga/                          # Intel Quartus Prime implementation files
-    ├── constraints/
-    │   ├── mac_de10_lite.sdc      # Synopsys Design Constraints (TimeQuest STA)
-    │   └── mac_de10_lite.qsf      # Intel Quartus Settings File (Pin assignments)
-    └── top_fpga_wrapper.sv        # Intel FPGA evaluation wrapper (Switches, LEDs, Keys)
+```powershell
+powershell -NoProfile -File tb/run_tests.ps1
 ```
 
----
+The runner compiles packages first and stores artifacts in a temporary directory.
+It runs six self-checking testbenches: exhaustive small adders and combinational
+multipliers, wider carry tests, exhaustive pipelined 4-bit multiplication,
+full-rate MAC and matrix streams, and end-to-end UART transactions. Tests include
+valid bubbles, maximum values, matrix ordering, reset with requests in flight,
+framing recovery, uninterrupted UART byte timing, and response snapshot stability.
 
+## 6. Source layout
+
+| Path | Purpose |
+| --- | --- |
+| `rtl/ADDER.sv` | Parameterized CLA-based adder and 4-bit CLA primitive |
+| `rtl/MULTIPLIER.sv` | Parameterized combinational Vedic multiplier |
+| `rtl/VEDIC4_PIPELINED.sv` | Three-stage 4-bit Vedic multiplier |
+| `rtl/MAC.sv` | Four parallel products and registered adder tree |
+| `rtl/MAC4x4.sv` | Sixteen MACs and full matrix result bus |
+| `rtl/MAC4x4_uart.sv` | Matrix receive, compute control, and continuous response serializer |
+| `rtl/uart/` | UART package, RX, clock enables, and standalone byte TX |
+| `tb/` | Arithmetic, pipeline, matrix, and serial testbenches |
+| `docs/UART.md` | UART packet and transaction contract |
+
+---
 ## 7. Team Work Breakdown & Responsibilities (4 Members)
 
 The project tasks are distributed across 4 team members: **Thanh Bình**, **Thế Anh**, **Minh Đức**, and **Hữu Thăng**:
@@ -151,35 +136,11 @@ flowchart TD
 
 ## 8. Verification & Simulation Guide
 
-### Golden Reference Model
-Generate random test vectors and cross-verify with the Python reference model:
-```bash
-python tb/mac_ref_model.py
-```
-
-### Running Simulation in Questa / ModelSim (Intel FPGA Edition)
-```bash
-# Create and map work library
-vlib work
-vmap work work
-
-# Compile synthesizable RTL and testbench
-vlog -sv rtl/multiplier_4x4.sv rtl/adder_10bit.sv rtl/shift_reg.sv rtl/mac_top.sv tb/mac_top_tb.sv
-
-# Run simulation
-vsim -c -do "run -all; quit" mac_top_tb
-```
+See section 5 and run `tb/run_tests.ps1`. The board wrapper referenced by
+`tb_fpga_reset.sv` is absent from this checkout, so that legacy test is not
+included in the RTL regression.
 
 ---
-
-### Nexys A7 Vivado build
-
-From the repository root, run `vivado -mode batch -source fpga/build_nexys_a7.tcl`.
-The 100 MHz to 200 MHz Clocking Wizard configuration is kept in
-`fpga/ip/clk_wiz_0/clk_wiz_0.xci`; the build imports it and generates its
-output products before synthesizing the board wrapper. The checked-in Vivado
-project references the same IP configuration. Generated IP files remain build
-artifacts and do not need to be committed.
 
 ## 9. Intel Quartus Prime FPGA Flow & Resource Utilization
 
@@ -207,12 +168,8 @@ artifacts and do not need to be committed.
    quartus_pgm -m jtag -c 1 -o "p;output_files/top_fpga_wrapper.sof"
    ```
 
-### Estimated Resource Utilization on Intel MAX 10:
+### Resource utilization and timing
 
-| Resource Type | Estimated Usage | Available on Device | Utilization (%) |
-| :--- | :---: | :---: | :---: |
-| **Total Logic Elements (LEs)** | ~40 - 65 | 49,760 | < 0.2% |
-| **Dedicated Logic Registers** | ~45 - 60 | 49,760 | < 0.2% |
-| **Embedded Multiplier 9-bit elements** | 0 (Inferred in LEs) | 288 | 0% |
-| **Memory Bits (M9K)** | 0 | 1,677,312 | 0% |
-| **Operating Frequency ($F_{max}$)** | > 150 MHz | - | Positive Setup & Hold Slack |
+The previous sequential MAC estimates do not apply to the parallel matrix
+architecture. Generate fresh synthesis, fitter, and timing reports for the
+chosen target before quoting area or operating frequency.

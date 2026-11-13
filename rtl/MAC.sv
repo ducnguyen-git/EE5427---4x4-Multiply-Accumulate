@@ -1,160 +1,46 @@
+// Parallel products and registered balanced tree; accepts START every clock.
+// A request sampled on edge N produces C/DONE on edge N+4.
 module MAC (
-	input logic clk,
-	input logic rst_n,
-	input logic START,
-	input logic [15:0]A,
-	input logic [15:0]B,
-	output logic [9:0]C,
-	output logic DONE
+    input logic clk, rst_n, START,
+    input logic [15:0] A, B,
+    output logic [9:0] C,
+    output logic DONE
 );
-
-    //==================================================
-    // DONE Signal
-    //==================================================
-	
-	logic [2:0] count, count_next;
-	logic busy;
-	COUNT_ADDER counter (
-		.A(count),
-		.B(3'b001),	
-		.C(count_next)
-	);
-	// count
-	always_ff @(posedge clk or negedge rst_n) begin
-		if (!rst_n) begin
-			count <= 3'b0;
-		end 
-		else if (START && !busy) begin
-			count      <= 3'b0;
-		end
-		else if (busy && count != 3'd4) begin 
-			count <= count_next;
-		end
- 		else begin
-			count <= count;
-		end
-	end
-
-	always_ff @(posedge clk or negedge rst_n) begin
-		if (!rst_n) begin
-			busy <= 1'b0;
-		end
-		else if (START && !busy) begin
-			busy <= 1'b1;
-		end
-		else if (busy && count == 3'd4) begin
-			busy <= 1'b0;
-		end
-	end
-
-	always_ff @(posedge clk or negedge rst_n) begin
-		if (!rst_n) begin
-			DONE <= 1'b0;
-		end
-		else if (busy && count == 3'd4) begin
-			DONE <= 1'b1;
-		end
-		else begin
-			DONE <= 1'b0;
-		end
-	end
-	
-    //==================================================
-    // Shift registers for A and B
-    //==================================================
-
-    logic [15:0] A_r;
-    logic [15:0] B_r;
-
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            A_r <= 16'd0;
-            B_r <= 16'd0;
-        end
-        else if (START && !busy) begin
-            A_r <= A;
-            B_r <= B;
-        end
-        else if (busy) begin
-            A_r <= A_r >> 4;
-            B_r <= B_r >> 4;
-        end
-		else begin
-            A_r <= A_r;
-            B_r <= B_r;
-		end
+    logic [7:0] product [0:3];
+    logic [3:0] product_valid;
+    logic [8:0] pair_sum [0:1], pair_r [0:1];
+    logic [9:0] result;
+    logic pair_valid;
+    for (genvar i = 0; i < 4; i++) begin : GEN_PRODUCT
+        VEDIC4_PIPELINED multiplier (
+            .clk(clk), .rst_n(rst_n), .valid_in(START),
+            .A(A[4*i +: 4]), .B(B[4*i +: 4]),
+            .C(product[i]), .valid_out(product_valid[i])
+        );
     end
-
-    //==================================================
-    // 4-bit x 4-bit multiplier
-    //==================================================
-
-    logic [7:0] MUL_C;
-
-    MAC_MULTIPLIER #(
-        .WIDTH(4)
-    ) Multiplier (
-        .A(A_r[3:0]),
-        .B(B_r[3:0]),
-        .C(MUL_C)
+    for (genvar i = 0; i < 2; i++) begin : GEN_PAIR
+        Multiple_adder #(.WIDTH(9)) adder (
+            .A({1'b0, product[2*i]}), .B({1'b0, product[2*i+1]}), .C(pair_sum[i])
+        );
+    end
+    Multiple_adder #(.WIDTH(10)) final_adder (
+        .A({1'b0, pair_r[0]}), .B({1'b0, pair_r[1]}), .C(result)
     );
-
-    //==================================================
-    // Multiplier pipeline register
-    //==================================================
-
-    logic [7:0] MUL_C_r;
-
     always_ff @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            MUL_C_r <= 8'd0;
-        end
-        else if (START && !busy) begin
-            MUL_C_r <= 8'd0;
-        end
-        else if (busy) begin
-            MUL_C_r <= MUL_C;
-        end
-		else begin
-			MUL_C_r <= MUL_C_r;
-		end
-    end
-
-    //==================================================
-    // Accumulator
-    //==================================================
-
-    logic [9:0] ADDER_C;
-    logic [9:0] ADDER_C_r;
-
-    MAC_ADDER #(
-        .WIDTH(10)
-    ) Adder (
-        .A({2'b00, MUL_C_r}),
-        .B(ADDER_C_r),
-        .C(ADDER_C)
-    );
-
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            ADDER_C_r <= 10'd0;
-        end
-        else if (START && !busy) begin
-            // Xóa k?t qu? phép MAC tr??c
-            ADDER_C_r <= 10'd0;
-        end
-        else if (busy) begin
-            ADDER_C_r <= ADDER_C;
-        end
-		else begin
-            ADDER_C_r <= ADDER_C_r;
+            pair_valid <= 0;
+            DONE <= 0;
+            pair_r[0] <= 0;
+            pair_r[1] <= 0;
+            C <= 0;
+        end else begin
+            pair_valid <= &product_valid;
+            DONE <= pair_valid;
+            if (&product_valid) begin
+                pair_r[0] <= pair_sum[0];
+                pair_r[1] <= pair_sum[1];
+            end
+            if (pair_valid) C <= result;
         end
     end
-
-    //==================================================
-    // Output
-    //==================================================
-
-    assign C = ADDER_C_r;
-
 endmodule
