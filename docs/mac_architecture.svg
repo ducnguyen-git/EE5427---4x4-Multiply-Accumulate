@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+<title id="title">Single MAC architectural block diagram</title>
+<desc id="desc">Four parallel three-stage Vedic multipliers feed two registered nine-bit pair sums and one registered ten-bit final sum. A three-stage multiplier valid pipeline, reduction AND, pair valid register and DONE register track requests. START, clk, and rst_n are external inputs.</desc>
+<defs>
+<marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8" fill="none" stroke="#334155" stroke-width="1.5"/></marker>
+<marker id="purple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8" fill="none" stroke="#7c3aed" stroke-width="1.5"/></marker>
+<style>text{font-family:Arial,sans-serif;font-size:17px;fill:#172b45}.title{font-size:29px;font-weight:bold}.head{font-size:19px;font-weight:bold}.small{font-size:14px}.box{fill:#eef5ff;stroke:#4275aa;stroke-width:2;rx:9}.reg{fill:#e6f6ef;stroke:#278561;stroke-width:2;rx:8}.valid{fill:#f4edff;stroke:#7c3aed;stroke-width:2;rx:8}.wire{fill:none;stroke:#334155;stroke-width:2;marker-end:url(#arrow)}.ctl{fill:none;stroke:#7c3aed;stroke-width:2;stroke-dasharray:7 5;marker-end:url(#purple)}.bus{fill:none;stroke:#7c3aed;stroke-width:2;stroke-dasharray:7 5}</style>
+</defs>
+<rect width="1600" height="1000" fill="white"/>
+<text x="40" y="45" class="title">Single MAC — four-element unsigned dot product</text>
+<text x="40" y="76">C = a0 × b0 + a1 × b1 + a2 × b2 + a3 × b3 · exact range 0–900 · no accumulation feedback</text>
+<rect x="190" y="110" width="1215" height="730" rx="14" fill="#fbfdff" stroke="#94a3b8" stroke-width="2"/>
+<text x="210" y="140" class="head">MAC module</text>
+<text x="30" y="302" class="head">A[15:0]</text><path class="wire" d="M115 296 H225"/>
+<text x="30" y="354" class="head">B[15:0]</text><path class="wire" d="M115 348 H225"/>
+<rect class="box" x="225" y="185" width="180" height="390"/>
+<text x="244" y="220" class="head">Operand slices</text>
+<text x="240" y="255">ai = A[4i +: 4]</text><text x="240" y="283">bi = B[4i +: 4]</text>
+<text x="246" y="402">i = 0, 1, 2, 3</text><text x="240" y="440" class="small">Each lane receives</text><text x="240" y="462" class="small">two unsigned 4-bit</text><text x="240" y="484" class="small">operands.</text>
+<text x="457" y="165" class="head">Stages 1–3 · edges N to N+2</text>
+<rect class="box" x="465" y="195" width="260" height="68"/><text x="483" y="222">VEDIC4_PIPELINED × lane 0</text><text x="483" y="248" class="small">4 × 4 bits → product[0], 8 bits</text>
+<rect class="box" x="465" y="295" width="260" height="68"/><text x="483" y="322">VEDIC4_PIPELINED × lane 1</text><text x="483" y="348" class="small">4 × 4 bits → product[1], 8 bits</text>
+<rect class="box" x="465" y="445" width="260" height="68"/><text x="483" y="472">VEDIC4_PIPELINED × lane 2</text><text x="483" y="498" class="small">4 × 4 bits → product[2], 8 bits</text>
+<rect class="box" x="465" y="545" width="260" height="68"/><text x="483" y="572">VEDIC4_PIPELINED × lane 3</text><text x="483" y="598" class="small">4 × 4 bits → product[3], 8 bits</text>
+<path class="wire" d="M405 229 H465"/><path class="wire" d="M405 329 H465"/><path class="wire" d="M405 479 H465"/><path class="wire" d="M405 560 H435 V579 H465"/>
+<text x="816" y="165" class="head">Stage 4 · N+3</text>
+<rect class="box" x="805" y="250" width="130" height="72"/><text x="827" y="280" class="head">9-bit add</text><text x="821" y="305" class="small">p0 + p1</text>
+<rect class="box" x="805" y="500" width="130" height="72"/><text x="827" y="530" class="head">9-bit add</text><text x="821" y="555" class="small">p2 + p3</text>
+<path class="wire" d="M725 229 H760 V270 H805"/><path class="wire" d="M725 329 H775 V302 H805"/>
+<path class="wire" d="M725 479 H760 V520 H805"/><path class="wire" d="M725 579 H775 V552 H805"/>
+<text x="744" y="399" class="small">Products zero-extended to 9 bits</text>
+<rect class="reg" x="965" y="250" width="110" height="72"/><text x="977" y="280">pair_r[0]</text><text x="982" y="305" class="small">9-bit reg</text>
+<rect class="reg" x="965" y="500" width="110" height="72"/><text x="977" y="530">pair_r[1]</text><text x="982" y="555" class="small">9-bit reg</text>
+<path class="wire" d="M935 286 H965"/><path class="wire" d="M935 536 H965"/>
+<text x="1160" y="165" class="head">Stage 5 · N+4</text>
+<rect class="box" x="1140" y="370" width="115" height="80"/><text x="1151" y="402" class="head">10-bit add</text><text x="1161" y="429" class="small">final sum</text>
+<path class="wire" d="M1075 286 H1100 V390 H1140"/><path class="wire" d="M1075 536 H1115 V432 H1140"/>
+<text x="1091" y="595" class="small">Pair sums zero-extended to 10 bits</text>
+<rect class="reg" x="1290" y="370" width="90" height="80"/><text x="1310" y="402" class="head">C reg</text><text x="1305" y="429" class="small">10 bits</text>
+<path class="wire" d="M1255 410 H1290"/><path class="wire" d="M1380 410 H1440"/><text x="1450" y="417" class="head">C[9:0]</text>
+<text x="30" y="700" class="head">START</text><path class="ctl" d="M115 694 H465"/>
+<rect class="valid" x="465" y="660" width="260" height="70"/><text x="482" y="689">4 multiplier valid pipelines</text><text x="482" y="714" class="small">3 registers each; valid_out at N+2</text>
+<path class="ctl" d="M435 694 V180 H595 V195"/><text x="225" y="633" class="small">START → valid_in of all four multipliers</text>
+<path class="ctl" d="M725 694 H805"/>
+<rect class="valid" x="805" y="660" width="130" height="70"/><text x="818" y="690">AND of four</text><text x="814" y="714" class="small">product_valid</text>
+<path class="ctl" d="M935 694 H965"/>
+<rect class="valid" x="965" y="660" width="110" height="70"/><text x="973" y="689">pair_valid</text><text x="983" y="714" class="small">reg · N+3</text>
+<path class="ctl" d="M1075 694 H1290"/>
+<rect class="valid" x="1290" y="660" width="90" height="70"/><text x="1302" y="689">DONE</text><text x="1299" y="714" class="small">reg · N+4</text>
+<path class="ctl" d="M1380 694 H1440"/><text x="1450" y="701" class="head">DONE</text>
+<path class="ctl" d="M950 694 V625 H1020 V572"/><path class="ctl" d="M950 625 H945 V340 H1020 V322"/>
+<text x="977" y="648" class="small">pair register enable</text>
+<path class="ctl" d="M1210 694 V620 H1335 V450"/><text x="1230" y="646" class="small">C register enable</text>
+<text x="30" y="791" class="head">clk / rst_n</text><path class="ctl" d="M140 785 H260"/>
+<rect class="valid" x="260" y="757" width="1100" height="58"/><text x="280" y="782">Shared clock / reset distribution → every datapath and valid register shown above</text><text x="280" y="803" class="small">Rising-edge clock; asynchronous active-low reset clears pipeline, C, and DONE. Distribution is shown as one shared block for clarity.</text>
+<rect x="40" y="865" width="1520" height="105" rx="10" fill="#f5f7fa" stroke="#cbd5e1"/>
+<text x="60" y="893">Multiplier internals: registered 2 × 2 quadrant products (N) → crosswise sums / diagonals (N+1) → 8-bit product (N+2).</text>
+<text x="60" y="923">START at N → C / DONE at N+4. Accepts one request per clock; C holds when DONE is low. Consecutive results keep DONE high.</text>
+<text x="60" y="951" class="small">Solid arrows: data. Dashed purple: valid / control. Green blocks: explicit adder-tree registers. Source: rtl/MAC.sv and rtl/VEDIC4_PIPELINED.sv.</text>
+</svg>

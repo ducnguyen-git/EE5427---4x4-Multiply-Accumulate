@@ -46,6 +46,12 @@ asserted after the first request byte and stays high through the final stop
 bit. Bytes received during computation/transmission are discarded. There is
 one response buffer; this transport does not queue transactions.
 
+The Nexys A7 `top_fpga_wrapper` exposes only CLK100MHZ, UART_RXD, and UART_TXD.
+It generates reset automatically during the first four clock cycles after FPGA
+configuration; there are no buttons, switches, displays, or external reset port.
+After a lost packet boundary, reconfigure the FPGA to restart the board transport.
+Disable hardware flow control in the host serial application.
+
 A framing error or RX overrun discards a partial request. Reset aborts partial
 requests, in-flight computations, and responses, returns TX high, and clears
 the pipeline. There is no packet header, checksum, or partial-packet timeout;

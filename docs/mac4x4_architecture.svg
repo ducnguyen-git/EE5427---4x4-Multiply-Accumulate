@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="870" viewBox="0 0 1400 870" role="img" aria-labelledby="title desc">
+<title id="title">MAC4x4 architectural block diagram</title>
+<desc id="desc">Two load-enabled matrix registers feed row and column routing into sixteen parallel MAC units. Sixteen ten-bit results form C and sixteen valid signals feed a reduction AND to DONE.</desc>
+<defs>
+ <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8" fill="none" stroke="#334155" stroke-width="1.5"/></marker>
+ <style>text{font-family:Arial,sans-serif;fill:#172b45;font-size:17px}.title{font-size:29px;font-weight:700}.head{font-size:19px;font-weight:700}.small{font-size:14px}.box{fill:#eef5ff;stroke:#4275aa;stroke-width:2;rx:10}.mac{fill:#fff;stroke:#4275aa;stroke-width:1.5;rx:7}.wire{fill:none;stroke:#334155;stroke-width:2;marker-end:url(#arrow)}.control{fill:none;stroke:#7c3aed;stroke-width:2;stroke-dasharray:7 5;marker-end:url(#arrow)}.note{fill:#f5f7fa;stroke:#cbd5e1;rx:10}</style>
+</defs>
+<rect width="1400" height="870" fill="white"/>
+<text x="45" y="48" class="title">MAC4x4 — parallel matrix multiply core</text>
+<text x="45" y="78">4 × 4 unsigned matrices · 4-bit inputs · 10-bit output elements</text>
+<rect x="180" y="115" width="1030" height="570" fill="#fbfdff" stroke="#94a3b8" stroke-width="2" rx="15"/>
+<text x="200" y="145" class="head">MAC4x4 module</text>
+<text x="30" y="244" class="head">A[63:0]</text><path class="wire" d="M110 238 H215"/>
+<rect class="box" x="215" y="198" width="175" height="88"/><text x="245" y="233" class="head">matrix_A</text><text x="239" y="260">64-bit register</text>
+<text x="30" y="464" class="head">B[63:0]</text><path class="wire" d="M110 458 H215"/>
+<rect class="box" x="215" y="418" width="175" height="88"/><text x="245" y="453" class="head">matrix_B</text><text x="239" y="480">64-bit register</text>
+<path class="wire" d="M390 242 H425"/><rect class="box" x="425" y="198" width="175" height="88"/><text x="454" y="231" class="head">Row routing</text><text x="443" y="258">4 × 16-bit rows</text>
+<path class="wire" d="M390 462 H425"/><rect class="box" x="425" y="418" width="175" height="88"/><text x="440" y="451" class="head">Column routing</text><text x="433" y="478">4 × 16-bit columns</text>
+<path class="wire" d="M600 242 H650"/><path class="wire" d="M600 462 H650"/>
+<rect class="box" x="650" y="180" width="340" height="370"/>
+<text x="684" y="211" class="head">16 parallel MAC instances</text>
+<g text-anchor="middle">
+<rect class="mac" x="669" y="230" width="67" height="45"/><text x="702" y="258">MAC₀₀</text>
+<rect class="mac" x="747" y="230" width="67" height="45"/><text x="780" y="258">MAC₀₁</text>
+<rect class="mac" x="825" y="230" width="67" height="45"/><text x="858" y="258">MAC₀₂</text>
+<rect class="mac" x="903" y="230" width="67" height="45"/><text x="936" y="258">MAC₀₃</text>
+<rect class="mac" x="669" y="287" width="67" height="45"/><text x="702" y="315">MAC₁₀</text>
+<rect class="mac" x="747" y="287" width="67" height="45"/><text x="780" y="315">MAC₁₁</text>
+<rect class="mac" x="825" y="287" width="67" height="45"/><text x="858" y="315">MAC₁₂</text>
+<rect class="mac" x="903" y="287" width="67" height="45"/><text x="936" y="315">MAC₁₃</text>
+<rect class="mac" x="669" y="344" width="67" height="45"/><text x="702" y="372">MAC₂₀</text>
+<rect class="mac" x="747" y="344" width="67" height="45"/><text x="780" y="372">MAC₂₁</text>
+<rect class="mac" x="825" y="344" width="67" height="45"/><text x="858" y="372">MAC₂₂</text>
+<rect class="mac" x="903" y="344" width="67" height="45"/><text x="936" y="372">MAC₂₃</text>
+<rect class="mac" x="669" y="401" width="67" height="45"/><text x="702" y="429">MAC₃₀</text>
+<rect class="mac" x="747" y="401" width="67" height="45"/><text x="780" y="429">MAC₃₁</text>
+<rect class="mac" x="825" y="401" width="67" height="45"/><text x="858" y="429">MAC₃₂</text>
+<rect class="mac" x="903" y="401" width="67" height="45"/><text x="936" y="429">MAC₃₃</text>
+<text x="820" y="480">MAC(r,c) receives row r + column c</text><text x="820" y="514" class="head">Cᵣc = Σₖ₌₀³ Aᵣₖ × Bₖc</text>
+</g>
+<path class="wire" d="M990 275 H1030"/><text x="1000" y="252" class="small">16 × 10 bits</text>
+<rect class="box" x="1030" y="275" width="155" height="95"/><text x="1047" y="307" class="head">Row-major</text><text x="1056" y="332">result wiring</text><text x="1055" y="354" class="small">no extra register</text>
+<path class="wire" d="M1185 320 H1250"/><text x="1259" y="326" class="head">C[159:0]</text>
+<path class="wire" d="M990 490 H1030"/><text x="1000" y="475" class="small">done[15:0]</text>
+<rect class="box" x="1030" y="490" width="155" height="70"/><text x="1043" y="519">Reduction AND</text><text x="1080" y="544">&amp;done</text>
+<path class="wire" d="M1185 525 H1250"/><text x="1259" y="531" class="head">DONE</text>
+<text x="35" y="167" fill="#7c3aed">LOAD</text><path class="control" d="M100 162 H303 V198"/><path class="control" d="M160 162 V395 H303 V418"/>
+<text x="35" y="602" class="head">START</text><path class="control" d="M110 596 H820 V550"/><text x="480" y="587" class="small">shared input valid → all 16 MACs</text>
+<text x="35" y="642" class="head">clk / rst_n</text><path class="control" d="M140 636 H950 V550"/>
+<path class="control" d="M303 636 V506"/>
+<path class="control" d="M410 636 V310 H303 V286"/>
+<circle cx="303" cy="636" r="4" fill="#7c3aed"/><circle cx="410" cy="636" r="4" fill="#7c3aed"/>
+<text x="495" y="661" class="small">Shared rising-edge clock and asynchronous active-low reset to all registers</text>
+<rect class="note" x="45" y="711" width="1310" height="125"/>
+<text x="65" y="739">Each MAC: 4 parallel Vedic multipliers (3 stages) → 2 registered 9-bit pair sums → registered 10-bit result</text>
+<text x="65" y="768">Timing: START at edge N → C / DONE at N+4. One matrix operation per clock after pipeline fill.</text>
+<text x="65" y="797">Packing: input element 0 = [63:60]; output Cᵣc = C[159 − 10(4r+c) −: 10].</text>
+<text x="65" y="821" class="small">LOAD + START on the same edge computes the previously loaded matrices. Source: rtl/MAC4x4.sv and rtl/MAC.sv.</text>
+</svg>
