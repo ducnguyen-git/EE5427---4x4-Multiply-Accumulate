@@ -172,6 +172,15 @@ vsim -c -do "run -all; quit" mac_top_tb
 
 ---
 
+### Nexys A7 Vivado build
+
+From the repository root, run `vivado -mode batch -source fpga/build_nexys_a7.tcl`.
+The 100 MHz to 200 MHz Clocking Wizard configuration is kept in
+`fpga/ip/clk_wiz_0/clk_wiz_0.xci`; the build imports it and generates its
+output products before synthesizing the board wrapper. The checked-in Vivado
+project references the same IP configuration. Generated IP files remain build
+artifacts and do not need to be committed.
+
 ## 9. Intel Quartus Prime FPGA Flow & Resource Utilization
 
 ### Target Device: Intel MAX 10 (`10M50DAF484C7G` / Terasic DE10-Lite)
